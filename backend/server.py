@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MangaRX Backend — Adaptado para Render
+MangaRX Backend — Adaptado para Render + Supabase
 """
 
 import json
@@ -14,6 +14,47 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 PORT = int(os.environ.get("PORT", 8765))
 
 HEADERS = {"User-Agent": "MangaRX/2.0", "Accept": "application/json"}
+
+# ─── SUPABASE ─────────────────────────────────────────────────────────────────
+
+SUPA_URL = os.environ.get("SUPABASE_URL", "https://txfklnxsuzdawuhbxaov.supabase.co")
+SUPA_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4ZmtsbnhzdXpkYXd1aGJ4YW92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzM3OTksImV4cCI6MjA4NzQ0OTc5OX0.0vQ0DGm1h7GVUMBZKqUtfqsJS165Ed2_JvYxuVQyEeA")
+SUPA_HEADERS = {
+    "apikey": SUPA_KEY,
+    "Authorization": f"Bearer {SUPA_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+}
+
+def supa_get(table, params=None):
+    url = f"{SUPA_URL}/rest/v1/{table}"
+    if params:
+        url += "?" + urllib.parse.urlencode(params)
+    req = urllib.request.Request(url, headers=SUPA_HEADERS)
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return json.loads(r.read())
+
+def supa_post(table, data):
+    url = f"{SUPA_URL}/rest/v1/{table}"
+    body = json.dumps(data).encode()
+    req = urllib.request.Request(url, data=body, headers=SUPA_HEADERS, method="POST")
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return json.loads(r.read())
+
+def supa_delete(table, match_col, match_val):
+    url = f"{SUPA_URL}/rest/v1/{table}?{match_col}=eq.{urllib.parse.quote(str(match_val))}"
+    req = urllib.request.Request(url, headers=SUPA_HEADERS, method="DELETE")
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return r.status
+
+def supa_upsert(table, data, on_conflict):
+    url = f"{SUPA_URL}/rest/v1/{table}"
+    headers = dict(SUPA_HEADERS)
+    headers["Prefer"] = f"resolution=merge-duplicates,return=representation"
+    body = json.dumps(data).encode()
+    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return json.loads(r.read())
 
 def fetch(url, extra_headers=None):
     headers = dict(HEADERS)
@@ -260,12 +301,57 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
+    def do_POST(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(length)) if length else {}
+
+            if path == "/api/historico/salvar":
+                try:
+                    supa_delete("historico", "chapter_id", body.get("chapter_id",""))
+                except: pass
+                supa_post("historico", {
+                    "manga_id": body.get("manga_id",""),
+                    "manga_title": body.get("manga_title",""),
+                    "manga_cover": body.get("manga_cover",""),
+                    "manga_source": body.get("manga_source",""),
+                    "chapter_id": body.get("chapter_id",""),
+                    "chapter_num": body.get("chapter_num",""),
+                    "manga_data": body.get("manga_data",{})
+                })
+                self.send_json({"ok": True})
+
+            elif path == "/api/favoritos/salvar":
+                supa_upsert("favoritos", {
+                    "manga_id": body.get("manga_id",""),
+                    "manga_title": body.get("manga_title",""),
+                    "manga_cover": body.get("manga_cover",""),
+                    "manga_source": body.get("manga_source",""),
+                    "manga_data": body.get("manga_data",{})
+                }, "manga_id")
+                self.send_json({"ok": True})
+
+            elif path == "/api/favoritos/remover":
+                supa_delete("favoritos", "manga_id", body.get("manga_id",""))
+                self.send_json({"ok": True})
+
+            else:
+                self.send_response(404); self.end_headers()
+
+        except Exception as e:
+            self.send_json({"error": str(e)}, 500)
+
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "*")
         self.end_headers()
+
+    def do_POST(self):
+        self.do_GET()
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -334,8 +420,69 @@ class Handler(BaseHTTPRequestHandler):
                     self.wfile.write(img_data)
                 except Exception as e:
                     self.send_response(404); self.end_headers()
+
+            elif path == "/api/score":
                 score = jikan_score(g("title"))
                 self.send_json({"score": score})
+
+            elif path == "/api/historico":
+                try:
+                    dados = supa_get("historico", {"order": "lido_em.desc", "limit": 100})
+                    self.send_json({"historico": dados})
+                except Exception as e:
+                    self.send_json({"historico": [], "error": str(e)})
+
+            elif path == "/api/historico/salvar":
+                try:
+                    length = int(self.headers.get("Content-Length", 0))
+                    body = json.loads(self.rfile.read(length))
+                    # remove duplicata do mesmo capitulo
+                    try:
+                        supa_delete("historico", "chapter_id", body["chapter_id"])
+                    except: pass
+                    supa_post("historico", {
+                        "manga_id":     body["manga_id"],
+                        "manga_title":  body["manga_title"],
+                        "manga_cover":  body.get("manga_cover",""),
+                        "manga_source": body.get("manga_source",""),
+                        "chapter_id":   body["chapter_id"],
+                        "chapter_num":  body.get("chapter_num",""),
+                        "manga_data":   json.dumps(body.get("manga_data",{}))
+                    })
+                    self.send_json({"ok": True})
+                except Exception as e:
+                    self.send_json({"error": str(e)}, 500)
+
+            elif path == "/api/favoritos":
+                try:
+                    dados = supa_get("favoritos", {"order": "salvo_em.desc"})
+                    self.send_json({"favoritos": dados})
+                except Exception as e:
+                    self.send_json({"favoritos": [], "error": str(e)})
+
+            elif path == "/api/favoritos/salvar":
+                try:
+                    length = int(self.headers.get("Content-Length", 0))
+                    body = json.loads(self.rfile.read(length))
+                    supa_upsert("favoritos", {
+                        "manga_id":     body["manga_id"],
+                        "manga_title":  body["manga_title"],
+                        "manga_cover":  body.get("manga_cover",""),
+                        "manga_source": body.get("manga_source",""),
+                        "manga_data":   json.dumps(body.get("manga_data",{}))
+                    }, "manga_id")
+                    self.send_json({"ok": True})
+                except Exception as e:
+                    self.send_json({"error": str(e)}, 500)
+
+            elif path == "/api/favoritos/remover":
+                try:
+                    length = int(self.headers.get("Content-Length", 0))
+                    body = json.loads(self.rfile.read(length))
+                    supa_delete("favoritos", "manga_id", body["manga_id"])
+                    self.send_json({"ok": True})
+                except Exception as e:
+                    self.send_json({"error": str(e)}, 500)
 
             elif path == "/api/explore":
                 # tipo: manga=japonês, manhwa=coreano, manhua=chinês, doujinshi, all
