@@ -503,16 +503,149 @@ renderGenrePills('home-genre-pills');
 let currentManga = null;
 let allResults = [];
 
+// ── STATE (localStorage apenas para capítulos lidos) ─────────────────────────
 const state = {
-  favorites: JSON.parse(localStorage.getItem('mrx_favs') || '[]'),
-  history: JSON.parse(localStorage.getItem('mrx_history') || '[]'),
   readChapters: JSON.parse(localStorage.getItem('mrx_read') || '{}'),
-  save() {
-    localStorage.setItem('mrx_favs', JSON.stringify(this.favorites));
-    localStorage.setItem('mrx_history', JSON.stringify(this.history));
-    localStorage.setItem('mrx_read', JSON.stringify(this.readChapters));
-  }
+  save() { localStorage.setItem('mrx_read', JSON.stringify(this.readChapters)); }
 };
+
+// ── BANCO DE DADOS (Supabase via backend) ─────────────────────────────────────
+
+async function dbSalvarHistorico(manga, chapterId, chapterNum) {
+  try {
+    await fetch(`${API}/historico/salvar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        manga_id: manga.id,
+        manga_title: manga.title,
+        manga_cover: manga.cover || '',
+        manga_source: manga.source || '',
+        chapter_id: chapterId,
+        chapter_num: chapterNum,
+        manga_data: manga
+      })
+    });
+  } catch(e) { console.warn('Erro ao salvar histórico:', e); }
+}
+
+async function dbSalvarFavorito(manga) {
+  try {
+    await fetch(`${API}/favoritos/salvar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        manga_id: manga.id,
+        manga_title: manga.title,
+        manga_cover: manga.cover || '',
+        manga_source: manga.source || '',
+        manga_data: manga
+      })
+    });
+  } catch(e) { console.warn('Erro ao salvar favorito:', e); }
+}
+
+async function dbRemoverFavorito(mangaId) {
+  try {
+    await fetch(`${API}/favoritos/remover`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manga_id: mangaId })
+    });
+  } catch(e) { console.warn('Erro ao remover favorito:', e); }
+}
+
+async function dbGetHistorico() {
+  try {
+    const r = await fetch(`${API}/historico`);
+    const d = await r.json();
+    return (d.historico || []).map(h => ({
+      manga: typeof h.manga_data === 'string' ? JSON.parse(h.manga_data) : h.manga_data,
+      chapterId: h.chapter_id,
+      chapter: h.chapter_num,
+      date: new Date(h.lido_em).getTime()
+    }));
+  } catch(e) { return []; }
+}
+
+async function dbGetFavoritos() {
+  try {
+    const r = await fetch(`${API}/favoritos`);
+    const d = await r.json();
+    return (d.favoritos || []).map(f =>
+      typeof f.manga_data === 'string' ? JSON.parse(f.manga_data) : f.manga_data
+    );
+  } catch(e) { return []; }
+}
+
+async function dbIsFavorito(mangaId) {
+  try {
+    const favs = await dbGetFavoritos();
+    return favs.some(f => f.id === mangaId);
+  } catch(e) { return false; }
+}
+
+// ── SUPABASE SYNC ────────────────────────────────────────────────────────────
+
+async function dbSaveHistory(manga, chapterId, chapterNum) {
+  try {
+    await fetch(`${API}/historico/salvar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        manga_id: manga.id,
+        manga_title: manga.title,
+        manga_cover: manga.cover,
+        manga_source: manga.source,
+        chapter_id: chapterId,
+        chapter_num: chapterNum,
+        manga_data: manga
+      })
+    });
+  } catch(e) { console.log('Erro ao salvar histórico:', e); }
+}
+
+async function dbSaveFav(manga) {
+  try {
+    await fetch(`${API}/favoritos/salvar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        manga_id: manga.id,
+        manga_title: manga.title,
+        manga_cover: manga.cover,
+        manga_source: manga.source,
+        manga_data: manga
+      })
+    });
+  } catch(e) { console.log('Erro ao salvar favorito:', e); }
+}
+
+async function dbRemoveFav(mangaId) {
+  try {
+    await fetch(`${API}/favoritos/remover`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manga_id: mangaId })
+    });
+  } catch(e) { console.log('Erro ao remover favorito:', e); }
+}
+
+async function dbLoadHistory() {
+  try {
+    const r = await fetch(`${API}/historico`);
+    const d = await r.json();
+    return d.historico || [];
+  } catch(e) { return []; }
+}
+
+async function dbLoadFavorites() {
+  try {
+    const r = await fetch(`${API}/favoritos`);
+    const d = await r.json();
+    return d.favoritos || [];
+  } catch(e) { return []; }
+}
 
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -727,11 +860,8 @@ async function openChapter(id, num, source) {
   if (currentManga) {
     if (!state.readChapters[currentManga.id]) state.readChapters[currentManga.id] = {};
     state.readChapters[currentManga.id][id] = true;
-    const entry = { manga: currentManga, chapterId: id, chapter: num, date: Date.now() };
-    state.history = state.history.filter(h => h.chapterId !== id);
-    state.history.unshift(entry);
-    if (state.history.length > 100) state.history.pop();
     state.save();
+    dbSaveHistory(currentManga, id, num);
   }
   try {
     const src = source || currentManga?.source || 'mangadex';
@@ -756,44 +886,55 @@ function goBackToDetail() {
 
 // ── FAVORITES ─────────────────────────────────────────────────────────────────
 
-function toggleFav() {
+async function toggleFav() {
   if (!currentManga) return;
-  const idx = state.favorites.findIndex(f => f.id === currentManga.id);
-  if (idx >= 0) state.favorites.splice(idx, 1);
-  else state.favorites.unshift(currentManga);
-  state.save();
+  const favs = await dbLoadFavorites();
+  const isFav = favs.some(f => f.manga_id === currentManga.id);
+  if (isFav) await dbRemoveFav(currentManga.id);
+  else await dbSaveFav(currentManga);
   updateFavBtn();
 }
-function updateFavBtn() {
+async function updateFavBtn() {
   const btn = document.getElementById('fav-btn');
-  const isFav = currentManga && state.favorites.some(f => f.id === currentManga.id);
+  const favs = await dbLoadFavorites();
+  const isFav = currentManga && favs.some(f => f.manga_id === currentManga.id);
   btn.textContent = isFav ? '★ Nos Favoritos' : '♡ Favoritos';
   btn.classList.toggle('saved', !!isFav);
 }
-function renderFavorites() {
+async function renderFavorites() {
   const grid = document.getElementById('favorites-grid');
-  if (!state.favorites.length) {
+  grid.innerHTML = '<div class="loader">Carregando...</div>';
+  const dbFavs = await dbLoadFavorites();
+  if (!dbFavs.length) {
     grid.innerHTML = '<div class="empty-msg"><span>SEM FAVORITOS</span>Busque um mangá e salve!</div>';
     return;
   }
-  renderGrid(state.favorites, 'favorites-grid');
+  const items = dbFavs.map(f => f.manga_data || { id: f.manga_id, title: f.manga_title, cover: f.manga_cover, source: f.manga_source });
+  renderGrid(items, 'favorites-grid');
 }
-function renderHistory() {
+
+async function renderHistory() {
   const list = document.getElementById('history-list');
-  if (!state.history.length) {
+  list.innerHTML = '<div class="loader">Carregando...</div>';
+  const dbHist = await dbLoadHistory();
+  if (!dbHist.length) {
     list.innerHTML = '<div class="empty-msg"><span>SEM HISTÓRICO</span>Comece a ler!</div>';
     return;
   }
-  list.innerHTML = state.history.map(h => `
-    <div class="chapter-item" onclick="openManga(${JSON.stringify(h.manga).replace(/"/g,'&quot;')})">
-      <img src="${proxyImg(h.manga.cover)}" style="width:38px;height:54px;object-fit:cover;border-radius:4px;margin-right:1rem;" onerror="this.style.display='none'">
+  list.innerHTML = dbHist.map(h => {
+    const manga = h.manga_data || { id: h.manga_id, title: h.manga_title, cover: h.manga_cover, source: h.manga_source };
+    const safeM = JSON.stringify(manga).replace(/"/g,'&quot;');
+    const date = new Date(h.lido_em).toLocaleDateString('pt-BR');
+    return `
+    <div class="chapter-item" onclick="openManga(${safeM})">
+      <img src="${proxyImg(h.manga_cover)}" style="width:38px;height:54px;object-fit:cover;border-radius:4px;margin-right:1rem;" onerror="this.style.display='none'">
       <div style="flex:1">
-        <div style="font-weight:600;font-size:0.88rem">${h.manga.title}</div>
-        <div style="color:var(--muted);font-size:0.75rem">Cap. ${h.chapter} • ${new Date(h.date).toLocaleDateString('pt-BR')}</div>
+        <div style="font-weight:600;font-size:0.88rem">${h.manga_title}</div>
+        <div style="color:var(--muted);font-size:0.75rem">Cap. ${h.chapter_num} • ${date}</div>
       </div>
-      <span class="source-badge ${h.manga.source==='comick'?'badge-comick':'badge-mangadex'}" style="font-size:0.65rem">${h.manga.source==='comick'?'ComicK':'MangaDex'}</span>
-    </div>
-  `).join('');
+      <span class="source-badge ${h.manga_source==='comick'?'badge-comick':'badge-mangadex'}" style="font-size:0.65rem">${h.manga_source==='comick'?'ComicK':'MangaDex'}</span>
+    </div>`;
+  }).join('');
 }
 </script>
 </body>
