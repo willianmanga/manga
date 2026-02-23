@@ -433,6 +433,11 @@
 <script>
 const API = 'https://mangarx-backend.onrender.com/api';
 
+function proxyImg(url) {
+  if (!url) return '';
+  return `${API}/image?url=${encodeURIComponent(url)}`;
+}
+
 // ── GÊNEROS ──────────────────────────────────────────────────────────────────
 const GENRES = [
   { key: 'action',       label: '⚔️ Ação' },
@@ -620,7 +625,7 @@ function renderGrid(items, containerId, append=false) {
     const tagsHTML = (m.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('');
     return `
     <div class="manga-card" onclick="openManga(${safeM})">
-      <img src="${m.cover||''}" alt="${m.title}" loading="lazy" onerror="this.style.background='#1e1e24'">
+      <img src="${proxyImg(m.cover)}" alt="${m.title}" loading="lazy" onerror="this.style.background='#1e1e24'">
       <div class="card-source ${m.source}">${m.source==='mangadex'?'MangaDex':'ComicK'}</div>
       ${scoreHTML}${tipoHTML}
       <div class="manga-card-info">
@@ -644,7 +649,7 @@ async function openManga(manga) {
   currentManga = manga;
   document.getElementById('detail-title').textContent = manga.title;
   document.getElementById('detail-desc').textContent = manga.description || 'Sem descrição.';
-  document.getElementById('detail-cover').src = manga.cover || '';
+  document.getElementById('detail-cover').src = proxyImg(manga.cover);
   document.getElementById('detail-status').textContent = translateStatus(manga.status);
 
   // source badge
@@ -781,7 +786,7 @@ function renderHistory() {
   }
   list.innerHTML = state.history.map(h => `
     <div class="chapter-item" onclick="openManga(${JSON.stringify(h.manga).replace(/"/g,'&quot;')})">
-      <img src="${h.manga.cover||''}" style="width:38px;height:54px;object-fit:cover;border-radius:4px;margin-right:1rem;" onerror="this.style.display='none'">
+      <img src="${proxyImg(h.manga.cover)}" style="width:38px;height:54px;object-fit:cover;border-radius:4px;margin-right:1rem;" onerror="this.style.display='none'">
       <div style="flex:1">
         <div style="font-weight:600;font-size:0.88rem">${h.manga.title}</div>
         <div style="color:var(--muted);font-size:0.75rem">Cap. ${h.chapter} • ${new Date(h.date).toLocaleDateString('pt-BR')}</div>
