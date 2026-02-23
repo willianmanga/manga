@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MangaRX</title>
+<title>MangaWC</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -252,7 +252,8 @@
   #reader-page { background: #000; min-height: 100vh; padding: 0; }
   .reader-nav {
     position: sticky; top: 0; z-index: 50; background: rgba(13,13,15,0.95); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 1rem; padding: 0.7rem 1.5rem; backdrop-filter: blur(10px);
+    display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1.5rem; backdrop-filter: blur(10px);
+    flex-wrap: wrap;
   }
   .reader-nav button {
     background: var(--surface); border: 1px solid var(--border); color: var(--text);
@@ -260,6 +261,10 @@
     cursor: pointer; border-radius: 6px; transition: all 0.2s;
   }
   .reader-nav button:hover { border-color: var(--accent); }
+  .reader-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .reader-nav button.nav-chapter { background: var(--accent); border-color: var(--accent); font-weight: 700; }
+  .reader-nav button.nav-chapter:hover { background: #d02020; }
+  .reader-nav button.nav-chapter:disabled { background: var(--surface); border-color: var(--border); }
   .reader-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pages-container { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 1rem 0; }
   .reader-page-img { max-width: min(900px, 100vw); width: 100%; display: block; object-fit: contain; }
@@ -390,7 +395,9 @@
 <div id="reader-page" class="page">
   <div class="reader-nav">
     <button onclick="goBackToDetail()">← Voltar</button>
+    <button class="nav-chapter" id="btn-prev" onclick="navChapter(-1)" disabled>‹ Anterior</button>
     <div class="reader-title" id="reader-title"></div>
+    <button class="nav-chapter" id="btn-next" onclick="navChapter(1)" disabled>Próximo ›</button>
     <button onclick="scrollTo(0,0)">⬆ Topo</button>
   </div>
   <div class="pages-container" id="pages-container"></div>
@@ -835,8 +842,10 @@ async function loadChapters() {
     if (!data.chapters || !data.chapters.length) {
       list.innerHTML = '<div class="loader">Nenhum capítulo neste idioma. Tente outro idioma.</div>';
       document.getElementById('chapter-count').textContent = '';
+      currentChapterList = [];
       return;
     }
+    currentChapterList = data.chapters; // salva para navegação
     document.getElementById('chapter-count').textContent = `${data.chapters.length} capítulos`;
     const read = state.readChapters[currentManga.id] || {};
     list.innerHTML = data.chapters.map(c => `
@@ -853,10 +862,18 @@ async function loadChapters() {
 
 // ── READER ────────────────────────────────────────────────────────────────────
 
+let currentChapterList = [];
+let currentChapterIndex = -1;
+
 async function openChapter(id, num, source) {
+  const idx = currentChapterList.findIndex(c => c.id === id);
+  currentChapterIndex = idx;
+  updateNavButtons();
+
   document.getElementById('reader-title').textContent = `${currentManga?.title||''} — Cap. ${num}`;
   document.getElementById('pages-container').innerHTML = '<div class="loader" style="color:#444;padding:5rem">Carregando páginas...</div>';
   showPage('reader');
+  scrollTo(0, 0);
   if (currentManga) {
     if (!state.readChapters[currentManga.id]) state.readChapters[currentManga.id] = {};
     state.readChapters[currentManga.id][id] = true;
@@ -868,7 +885,7 @@ async function openChapter(id, num, source) {
     const r = await fetch(`${API}/pages?id=${id}&source=${src}`);
     const data = await r.json();
     if (!data.pages || !data.pages.length) {
-      document.getElementById('pages-container').innerHTML = '<div class="loader" style="color:#444">Nenhuma página encontrada para este capítulo.</div>';
+      document.getElementById('pages-container').innerHTML = '<div class="loader" style="color:#444">Nenhuma página encontrada.</div>';
       return;
     }
     document.getElementById('pages-container').innerHTML = data.pages.map((url, i) =>
@@ -877,6 +894,20 @@ async function openChapter(id, num, source) {
   } catch(e) {
     document.getElementById('pages-container').innerHTML = '<div class="loader" style="color:#444">Erro ao carregar páginas</div>';
   }
+}
+
+function updateNavButtons() {
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  if (btnPrev) btnPrev.disabled = currentChapterIndex <= 0;
+  if (btnNext) btnNext.disabled = currentChapterIndex < 0 || currentChapterIndex >= currentChapterList.length - 1;
+}
+
+function navChapter(dir) {
+  const newIdx = currentChapterIndex + dir;
+  if (newIdx < 0 || newIdx >= currentChapterList.length) return;
+  const c = currentChapterList[newIdx];
+  openChapter(c.id, c.chapter, c.source || currentManga?.source);
 }
 
 function goBackToDetail() {
