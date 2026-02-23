@@ -313,7 +313,27 @@ class Handler(BaseHTTPRequestHandler):
                     pages = mdex_pages(cid)
                 self.send_json({"pages": pages})
 
-            elif path == "/api/score":
+            elif path == "/api/image":
+                img_url = g("url")
+                if not img_url or not img_url.startswith("https://"):
+                    self.send_response(400); self.end_headers(); return
+                try:
+                    req = urllib.request.Request(img_url, headers={
+                        "User-Agent": "MangaRX/2.0",
+                        "Referer": "https://mangadex.org"
+                    })
+                    with urllib.request.urlopen(req, timeout=15) as r:
+                        img_data = r.read()
+                        ct = r.headers.get("Content-Type", "image/jpeg")
+                    self.send_response(200)
+                    self.send_header("Content-Type", ct)
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.send_header("Content-Length", len(img_data))
+                    self.send_header("Cache-Control", "public, max-age=86400")
+                    self.end_headers()
+                    self.wfile.write(img_data)
+                except Exception as e:
+                    self.send_response(404); self.end_headers()
                 score = jikan_score(g("title"))
                 self.send_json({"score": score})
 
