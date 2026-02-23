@@ -970,7 +970,20 @@ async function renderFavorites() {
     grid.innerHTML = '<div class="empty-msg"><span>SEM FAVORITOS</span>Busque um mangá e salve!</div>';
     return;
   }
-  const items = dbFavs.map(f => f.manga_data || { id: f.manga_id, title: f.manga_title, cover: f.manga_cover, source: f.manga_source });
+  const items = dbFavs.map(f => {
+    const d = f.manga_data || {};
+    return {
+      id: f.manga_id || d.id || '',
+      title: f.manga_title || d.title || 'Sem título',
+      cover: f.manga_cover || d.cover || '',
+      source: f.manga_source || d.source || 'mangadex',
+      status: d.status || '',
+      tags: d.tags || [],
+      score: d.score || null,
+      slug: d.slug || '',
+      tipo: d.tipo || ''
+    };
+  });
   renderGrid(items, 'favorites-grid');
 }
 
