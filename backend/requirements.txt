@@ -1,0 +1,1 @@
+# MangaRX usa apenas bibliotecas padrão do Python, sem dependências externas

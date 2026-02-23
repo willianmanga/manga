@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: mangarx-backend
+    runtime: python
+    buildCommand: echo "sem dependencias"
+    startCommand: python server.py
+    envVars:
+      - key: PORT
+        value: 10000
