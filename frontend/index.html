@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MangaWC</title>
+<title>MangaRX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -379,7 +379,7 @@
       </div>
     </div>
   </div>
-  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap;">
     <select class="lang-select" id="chapter-lang" onchange="loadChapters()" style="margin:0">
       <option value="pt-br">Português (BR)</option>
       <option value="pt">Português (PT)</option>
@@ -387,6 +387,7 @@
     </select>
     <span style="font-size:0.78rem;color:var(--muted)" id="chapter-count"></span>
   </div>
+  <div id="lang-notice" style="display:none;margin-bottom:1rem;padding:0.6rem 1rem;background:rgba(255,140,66,0.1);border:1px solid rgba(255,140,66,0.3);border-radius:6px;font-size:0.82rem;color:#ff8c42;"></div>
   <div class="section-title">CAPÍTULOS</div>
   <div id="chapters-list" class="chapters-list"></div>
 </div>
@@ -834,18 +835,47 @@ async function loadChapters() {
   if (!currentManga) return;
   const lang = document.getElementById('chapter-lang').value;
   const list = document.getElementById('chapters-list');
+  const notice = document.getElementById('lang-notice');
   list.innerHTML = '<div class="loader">Carregando capítulos...</div>';
+  notice.style.display = 'none';
+
   try {
     const slug = currentManga.slug || '';
-    const r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`);
-    const data = await r.json();
+
+    // Tenta no idioma selecionado
+    let r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`);
+    let data = await r.json();
+
+    // Fallback automático: se não tem PT-BR tenta PT, depois EN
+    const fallbacks = { 'pt-br': ['pt', 'en'], 'pt': ['pt-br', 'en'], 'en': [] };
+    let usedLang = lang;
+
     if (!data.chapters || !data.chapters.length) {
-      list.innerHTML = '<div class="loader">Nenhum capítulo neste idioma. Tente outro idioma.</div>';
+      for (const fallLang of (fallbacks[lang] || [])) {
+        r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${fallLang}&source=${currentManga.source}&slug=${slug}`);
+        data = await r.json();
+        if (data.chapters && data.chapters.length) {
+          usedLang = fallLang;
+          break;
+        }
+      }
+    }
+
+    if (!data.chapters || !data.chapters.length) {
+      list.innerHTML = '<div class="loader">Nenhum capítulo disponível para este título.</div>';
       document.getElementById('chapter-count').textContent = '';
       currentChapterList = [];
       return;
     }
-    currentChapterList = data.chapters; // salva para navegação
+
+    // Mostra aviso se usou fallback
+    if (usedLang !== lang) {
+      const langNames = { 'pt-br': 'Português (BR)', 'pt': 'Português (PT)', 'en': 'Inglês' };
+      notice.textContent = `⚠️ Não há capítulos em ${langNames[lang]}. Mostrando em ${langNames[usedLang]}.`;
+      notice.style.display = 'block';
+    }
+
+    currentChapterList = data.chapters;
     document.getElementById('chapter-count').textContent = `${data.chapters.length} capítulos`;
     const read = state.readChapters[currentManga.id] || {};
     list.innerHTML = data.chapters.map(c => `
