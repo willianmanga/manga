@@ -459,17 +459,23 @@ class Handler(BaseHTTPRequestHandler):
                 q = g("q"); lang = g("lang", "pt-br"); source = g("source", "all")
                 tags_raw = p.get("tags[]", [])
                 tags = tags_raw if tags_raw else None
-                results = []
-                # MangaZord primeiro (melhor PT-BR)
-                if source in ("all", "mangazord"):
-                    mz = mzord_search(q)
-                    results += mz
-                # MangaDex como complemento/fallback
-                if source in ("all", "mangadex"):
-                    results += mdex_search(q, lang, tags)
-                # ComicK
-                if source in ("all", "comick"):
-                    results += comick_search(q, lang, tags)
+
+                if source == "mangazord":
+                    results = mzord_search(q)
+                elif source == "mangadex":
+                    results = mdex_search(q, lang, tags)
+                elif source == "comick":
+                    results = comick_search(q, lang, tags)
+                else:
+                    # Waterfall: para na primeira fonte que retornar resultados
+                    results = mzord_search(q)
+                    if not results:
+                        print(f"MangaZord sem resultados para '{q}', tentando MangaDex...")
+                        results = mdex_search(q, lang, tags)
+                    if not results:
+                        print(f"MangaDex sem resultados para '{q}', tentando ComicK...")
+                        results = comick_search(q, lang, tags)
+
                 seen = set()
                 unique = []
                 for r in results:
