@@ -701,6 +701,18 @@ class Handler(BaseHTTPRequestHandler):
                     })
                 self.send_json({"results": results, "total": data.get("total", 0), "offset": offset})
 
+            # ── DEBUG: ver resposta bruta do MangaZord ──────────────────────
+            elif path == "/api/debug/mzord":
+                cid = g("id")
+                if not cid:
+                    self.send_json({"error": "Informe ?id=<chapter_id>"})
+                else:
+                    try:
+                        raw = mzord_get(f"/chapter/{cid}")
+                        self.send_json({"raw": raw, "keys": list(raw.keys())})
+                    except Exception as e:
+                        self.send_json({"error": str(e)})
+
             else:
                 self.send_response(404)
                 self.end_headers()
