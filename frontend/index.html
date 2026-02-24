@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MangaWC</title>
+<title>MangaRX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -760,6 +760,7 @@ function renderGrid(items, containerId, append=false) {
     return;
   }
   const html = items.map(m => {
+    const safeM = JSON.stringify(m).replace(/"/g,'&quot;');
     const sourceLabel = m.source === 'mangadex' ? 'MangaDex' : m.source === 'comick' ? 'ComicK' : 'MangaZord';
     const scoreHTML = m.score ? `<div class="card-score">★ ${parseFloat(m.score).toFixed(1)}</div>` : '';
     const tipoHTML = m.tipo ? `<div class="card-tipo ${m.tipo}">${m.tipo}</div>` : '';
