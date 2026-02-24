@@ -248,46 +248,30 @@ def mzord_pages(cid):
         data = mzord_get(f"/chapter/{cid}")
         print(f"MangaZord pages response keys: {list(data.keys())}")
 
+        # Tenta extrair hash e lista de imagens da resposta
+        hash_ = ""
+        imgs = []
+
         # Estrutura 1: { "pages": { "baseUrl": ..., "chapter": { "hash": ..., "data": [...] } } }
         pages_data = data.get("pages", {})
         if pages_data and isinstance(pages_data, dict):
-            base = pages_data.get("baseUrl", "")
             ch = pages_data.get("chapter", {})
             hash_ = ch.get("hash", "")
             imgs = ch.get("data", [])
-            if imgs and base and hash_:
-                print(f"MangaZord pages OK (estrutura 1): {len(imgs)} páginas")
-                return [f"{base}/data/{hash_}/{img}" for img in imgs]
 
-        # Estrutura 2: { "baseUrl": ..., "chapter": { "hash": ..., "data": [...] } }
-        base = data.get("baseUrl", "")
-        ch = data.get("chapter", {})
-        hash_ = ch.get("hash", "")
-        imgs = ch.get("data", [])
-        if imgs and base and hash_:
-            print(f"MangaZord pages OK (estrutura 2): {len(imgs)} páginas")
-            return [f"{base}/data/{hash_}/{img}" for img in imgs]
+        # Estrutura 2: { "chapter": { "hash": ..., "data": [...] } }
+        if not imgs:
+            ch = data.get("chapter", {})
+            if isinstance(ch, dict):
+                hash_ = ch.get("hash", "")
+                imgs = ch.get("data", [])
 
-        # Estrutura 3: { "images": ["url1", "url2", ...] } ou { "data": ["url1", ...] }
-        imgs_direct = data.get("images") or data.get("data", [])
-        if imgs_direct and isinstance(imgs_direct, list) and isinstance(imgs_direct[0], str):
-            print(f"MangaZord pages OK (estrutura 3 - URLs diretas): {len(imgs_direct)} páginas")
-            return imgs_direct
-
-        # Estrutura 4: { "chapter": { "images": [...] } } aninhado
-        ch_nested = data.get("chapter", {})
-        if isinstance(ch_nested, dict):
-            imgs_nested = ch_nested.get("images") or ch_nested.get("data", [])
-            if imgs_nested and isinstance(imgs_nested, list) and isinstance(imgs_nested[0], str):
-                print(f"MangaZord pages OK (estrutura 4 - URLs em chapter): {len(imgs_nested)} páginas")
-                return imgs_nested
-            # Tenta montar com hash se tiver
-            base2 = ch_nested.get("baseUrl", base)
-            hash2 = ch_nested.get("hash", hash_)
-            data2 = ch_nested.get("data", [])
-            if data2 and base2 and hash2:
-                print(f"MangaZord pages OK (estrutura 4b): {len(data2)} páginas")
-                return [f"{base2}/data/{hash2}/{img}" for img in data2]
+        if imgs and hash_:
+            # Usa o proxy do MangaZord em vez do CDN direto do MangaDex
+            # Isso garante que as páginas de aviso sejam filtradas pelo MangaZord
+            pages = [f"https://mangazord.com/api/proxy/page/{cid}/{hash_}/{img}" for img in imgs]
+            print(f"MangaZord pages OK via proxy: {len(pages)} páginas")
+            return pages
 
         print(f"MangaZord pages: nenhuma estrutura conhecida. data={json.dumps(data)[:300]}")
         return []
