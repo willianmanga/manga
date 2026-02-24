@@ -916,11 +916,27 @@ async function openChapter(id, num, source) {
     const src = source || currentManga?.source || 'mangadex';
     const r = await fetch(`${API}/pages?id=${id}&source=${src}`);
     const data = await r.json();
-    if (!data.pages || !data.pages.length) {
-      document.getElementById('pages-container').innerHTML = '<div class="loader" style="color:#444">Nenhuma página encontrada.</div>';
+
+    // Filtra URLs que apontam para páginas de aviso do MangaDex (não são imagens reais)
+    const validPages = (data.pages || []).filter(url => {
+      if (!url) return false;
+      // URL de aviso do MangaDex: aponta direto para mangadex.org (não para CDN de imagens)
+      if (url.includes('mangadex.org') && !url.includes('uploads.mangadex.org')) return false;
+      return true;
+    });
+
+    if (!validPages.length) {
+      const isMzord = src === 'mangazord';
+      document.getElementById('pages-container').innerHTML = `
+        <div class="loader" style="color:#888;padding:3rem;text-align:center;max-width:500px;margin:auto">
+          ${isMzord
+            ? '⚠️ Não foi possível carregar as páginas deste capítulo pelo MangaZord.<br><br>Tente pesquisar este título no <strong>MangaDex</strong> ou <strong>ComicK</strong> usando o seletor de fonte na busca.'
+            : 'Nenhuma página encontrada para este capítulo.'
+          }
+        </div>`;
       return;
     }
-    document.getElementById('pages-container').innerHTML = data.pages.map((url, i) =>
+    document.getElementById('pages-container').innerHTML = validPages.map((url, i) =>
       `<img class="reader-page-img" src="${url}" alt="Página ${i+1}" loading="lazy">`
     ).join('');
   } catch(e) {
