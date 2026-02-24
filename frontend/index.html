@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MangaRX</title>
+<title>MangaWC</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -89,7 +89,7 @@
     cursor: pointer; border-radius: 6px; transition: all 0.2s;
   }
   .btn-clear:hover { border-color: var(--accent); color: var(--text); }
-  .active-filters-label { font-size: 0.75rem; color: var(--accent); }
+  .card-source.mangazord { background: rgba(0,200,100,0.15); color: #00c864; border: 1px solid rgba(0,200,100,0.3); }
 
   /* TIPO BADGE */
   .card-tipo {
@@ -760,14 +760,14 @@ function renderGrid(items, containerId, append=false) {
     return;
   }
   const html = items.map(m => {
-    const safeM = JSON.stringify(m).replace(/"/g,'&quot;');
+    const sourceLabel = m.source === 'mangadex' ? 'MangaDex' : m.source === 'comick' ? 'ComicK' : 'MangaZord';
     const scoreHTML = m.score ? `<div class="card-score">★ ${parseFloat(m.score).toFixed(1)}</div>` : '';
     const tipoHTML = m.tipo ? `<div class="card-tipo ${m.tipo}">${m.tipo}</div>` : '';
     const tagsHTML = (m.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('');
     return `
     <div class="manga-card" onclick="openManga(${safeM})">
       <img src="${proxyImg(m.cover)}" alt="${m.title}" loading="lazy" onerror="this.style.background='#1e1e24'">
-      <div class="card-source ${m.source}">${m.source==='mangadex'?'MangaDex':'ComicK'}</div>
+      <div class="card-source ${m.source}">${sourceLabel}</div>
       ${scoreHTML}${tipoHTML}
       <div class="manga-card-info">
         <div class="manga-card-title">${m.title}</div>
