@@ -198,7 +198,7 @@ def mzord_search(q):
                 if rel.get("type") == "cover_art":
                     fname = rel.get("attributes", {}).get("fileName", "")
                     if fname:
-                        cover = f"https://mangazord.com/api/covers/{mid}/{fname}.256.jpg"
+                        cover = f"https://mangazord.com/api/proxy/cover/{mid}/{fname}"
             tags = []
             for t in attrs.get("tags", []):
                 tag_name = t.get("attributes", {}).get("name", {})
