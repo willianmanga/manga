@@ -163,7 +163,98 @@ def mdex_pages(cid):
     imgs = ch.get("data", [])
     return [f"{base}/data/{hash_}/{img}" for img in imgs]
 
-# ─── COMICK ──────────────────────────────────────────────────────────────────
+# ─── MANGAZORD ───────────────────────────────────────────────────────────────
+
+MZORD = "https://mangazord.com/api"
+MZORD_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Referer": "https://mangazord.com",
+    "Accept": "application/json",
+    "Origin": "https://mangazord.com"
+}
+
+def mzord_get(path, params=None):
+    url = MZORD + path
+    if params:
+        url += "?" + urllib.parse.urlencode(params, doseq=True)
+    req = urllib.request.Request(url, headers=MZORD_HEADERS)
+    with urllib.request.urlopen(req, timeout=15) as r:
+        return json.loads(r.read())
+
+def mzord_search(q):
+    try:
+        data = mzord_get("/search", {"title": q, "limit": 15, "offset": 0})
+        results = []
+        for m in data.get("data", []):
+            mid = m["id"]
+            attrs = m.get("attributes", {})
+            title_map = attrs.get("title", {})
+            name = (title_map.get("pt-br") or title_map.get("pt") or
+                    title_map.get("en") or next(iter(title_map.values()), "?"))
+            desc_map = attrs.get("description", {})
+            desc = desc_map.get("pt-br") or desc_map.get("pt") or desc_map.get("en") or ""
+            cover = ""
+            for rel in m.get("relationships", []):
+                if rel.get("type") == "cover_art":
+                    fname = rel.get("attributes", {}).get("fileName", "")
+                    if fname:
+                        cover = f"https://mangazord.com/api/covers/{mid}/{fname}.256.jpg"
+            tags = []
+            for t in attrs.get("tags", []):
+                tag_name = t.get("attributes", {}).get("name", {})
+                n = tag_name.get("pt-br") or tag_name.get("en", "")
+                if n: tags.append(n)
+            orig_lang = attrs.get("originalLanguage", "")
+            tipo_map = {"ja": "Manga", "ko": "Manhwa", "zh": "Manhua", "zh-hk": "Manhua"}
+            results.append({
+                "id": mid, "source": "mangazord",
+                "title": name, "description": desc[:400],
+                "cover": cover, "status": attrs.get("status", ""),
+                "tags": tags[:6], "score": None, "external": None,
+                "tipo": tipo_map.get(orig_lang, ""),
+                "originalLanguage": orig_lang,
+                "availableLangs": attrs.get("availableTranslatedLanguages", [])
+            })
+        return results
+    except Exception as e:
+        print(f"MangaZord search erro: {e}")
+        return []
+
+def mzord_chapters(mid, lang):
+    try:
+        lang_param = lang if lang in ("pt-br", "pt", "en") else "pt-br"
+        data = mzord_get(f"/manga/{mid}/all-chapters", {
+            "translatedLanguage": lang_param,
+            "order": "asc"
+        })
+        chapters = []
+        for c in data.get("data", []):
+            attrs = c.get("attributes", {})
+            chapters.append({
+                "id": c["id"], "source": "mangazord",
+                "chapter": attrs.get("chapter") or "?",
+                "volume": attrs.get("volume") or "",
+                "title": attrs.get("title") or "",
+                "lang": attrs.get("translatedLanguage", "pt-br"),
+                "pages": attrs.get("pages", 0)
+            })
+        return chapters, data.get("total", len(chapters))
+    except Exception as e:
+        print(f"MangaZord chapters erro: {e}")
+        return [], 0
+
+def mzord_pages(cid):
+    try:
+        data = mzord_get(f"/chapter/{cid}")
+        pages_data = data.get("pages", {})
+        base = pages_data.get("baseUrl", "")
+        ch = pages_data.get("chapter", {})
+        hash_ = ch.get("hash", "")
+        imgs = ch.get("data", [])
+        return [f"{base}/data/{hash_}/{img}" for img in imgs]
+    except Exception as e:
+        print(f"MangaZord pages erro: {e}")
+        return []
 
 COMICK = "https://api.comick.fun"
 
@@ -369,8 +460,14 @@ class Handler(BaseHTTPRequestHandler):
                 tags_raw = p.get("tags[]", [])
                 tags = tags_raw if tags_raw else None
                 results = []
+                # MangaZord primeiro (melhor PT-BR)
+                if source in ("all", "mangazord"):
+                    mz = mzord_search(q)
+                    results += mz
+                # MangaDex como complemento/fallback
                 if source in ("all", "mangadex"):
                     results += mdex_search(q, lang, tags)
+                # ComicK
                 if source in ("all", "comick"):
                     results += comick_search(q, lang, tags)
                 seen = set()
@@ -387,6 +484,11 @@ class Handler(BaseHTTPRequestHandler):
                 source = g("source", "mangadex"); slug = g("slug")
                 if source == "comick":
                     chs, total = comick_chapters(mid, slug, lang)
+                elif source == "mangazord":
+                    chs, total = mzord_chapters(mid, lang)
+                    # fallback para MangaDex se MangaZord falhar
+                    if not chs:
+                        chs, total = mdex_chapters(mid, lang)
                 else:
                     chs, total = mdex_chapters(mid, lang)
                 self.send_json({"chapters": chs, "total": total})
@@ -395,6 +497,11 @@ class Handler(BaseHTTPRequestHandler):
                 cid = g("id"); source = g("source", "mangadex")
                 if source == "comick":
                     pages = comick_pages(cid)
+                elif source == "mangazord":
+                    pages = mzord_pages(cid)
+                    # fallback para MangaDex se MangaZord falhar
+                    if not pages:
+                        pages = mdex_pages(cid)
                 else:
                     pages = mdex_pages(cid)
                 self.send_json({"pages": pages})
