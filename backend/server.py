@@ -246,14 +246,19 @@ def mzord_chapters(mid, lang):
 def mzord_pages(cid):
     try:
         data = mzord_get(f"/chapter/{cid}")
+        print(f"MangaZord pages response keys: {list(data.keys())}")
         pages_data = data.get("pages", {})
+        if not pages_data:
+            print(f"MangaZord pages vazio para {cid}, data={data}")
+            return []
         base = pages_data.get("baseUrl", "")
         ch = pages_data.get("chapter", {})
         hash_ = ch.get("hash", "")
         imgs = ch.get("data", [])
+        print(f"MangaZord pages OK: {len(imgs)} páginas, hash={hash_[:8]}...")
         return [f"{base}/data/{hash_}/{img}" for img in imgs]
     except Exception as e:
-        print(f"MangaZord pages erro: {e}")
+        print(f"MangaZord pages erro para {cid}: {e}")
         return []
 
 COMICK = "https://api.comick.fun"
@@ -501,16 +506,18 @@ class Handler(BaseHTTPRequestHandler):
 
             elif path == "/api/pages":
                 cid = g("id"); source = g("source", "mangadex")
+                pages = []
                 if source == "comick":
                     pages = comick_pages(cid)
                 elif source == "mangazord":
                     pages = mzord_pages(cid)
-                    # fallback para MangaDex se MangaZord falhar
                     if not pages:
+                        print(f"MangaZord pages falhou para {cid}, tentando MangaDex...")
                         pages = mdex_pages(cid)
                 else:
                     pages = mdex_pages(cid)
-                self.send_json({"pages": pages})
+                # filtra páginas que são do MangaDex redirect (imagem de aviso)
+                self.send_json({"pages": pages, "source_used": source})
 
             elif path == "/api/image":
                 img_url = g("url")
