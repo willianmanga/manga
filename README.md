@@ -255,4 +255,4 @@ Contribuições são bem-vindas! Abra uma issue ou envie um pull request.
 
 ## 📄 Licença
 
-MIT © 2025 — MangaNexus
+MIT © 2026 — MangaNexus
