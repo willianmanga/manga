@@ -218,7 +218,7 @@ Cache não persiste entre reinicializações do servidor.
 ## 📁 Estrutura do Projeto
 
 ```
-mangarx/
+manga-main/
 ├── backend/
 │   ├── server.py          # Servidor HTTP Python (toda a lógica)
 │   ├── requirements.txt   # Dependências Python (vazio — usa stdlib)
@@ -243,16 +243,17 @@ mangarx/
 
 ## 🤝 Contribuições
 
-Contribuições são bem-vindas! Abra uma issue ou envie um pull request.
+Contribuições são bem-vindas! Por favor, leia o nosso [Guia de Contribuição](CONTRIBUTING.md) para saber como você pode ajudar.
 
-1. Fork o repositório
-2. Crie uma branch: `git checkout -b feature/minha-feature`
-3. Commit: `git commit -m 'feat: adiciona minha feature'`
-4. Push: `git push origin feature/minha-feature`
-5. Abra um Pull Request
+## ⚖️ Licença
+
+Este projeto está licenciado sob a [Licença MIT](LICENSE). Consulte o arquivo `LICENSE` para mais detalhes.
+
+## 🤝 Código de Conduta
+
+Para garantir um ambiente acolhedor e respeitoso, este projeto adota o [Código de Conduta do Contribuidor](.github/CODE_OF_CONDUCT.md). Ao participar, você concorda em seguir este código.
+
 
 ---
 
-## 📄 Licença
 
-MIT © 2026 — MangaNexus
