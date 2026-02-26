@@ -1580,7 +1580,12 @@ async function loadChapters() {
 // ── READER ────────────────────────────────────────────────────────────────────
 let currentChapterList = [], currentChapterIndex = -1;
 
+let lastReaderChapterId = null;
+let lastReaderSource = null;
+
 async function openChapter(id, num, source) {
+  lastReaderChapterId = id;
+  lastReaderSource = source || currentManga?.source || 'mangadex';
   const idx = currentChapterList.findIndex(c=>c.id===id);
   currentChapterIndex = idx;
   updateNavButtons();
@@ -1614,20 +1619,46 @@ async function openChapter(id, num, source) {
     }
     document.getElementById('reader-progress').textContent = `[${validPages.length} PAG]`;
     document.getElementById('pages-container').innerHTML = validPages.map((url,i) =>
-      `<img class="reader-page-img" data-src="${url}" alt="Página ${i+1}"
+      `<img class="reader-page-img" data-src="${url}" data-idx="${i}" alt="Página ${i+1}"
         style="min-height:300px;background:var(--surface2)">`
     ).join('');
+
+    // Retry automático: URL do MangaDex at-home expira em ~15min
+    // Se imagem quebrar durante leitura, rebusca as páginas e troca a src
+    function attachRetry(img) {
+      img.addEventListener('error', async function() {
+        const retries = parseInt(img.dataset.retries || '0');
+        if (retries >= 2) { img.style.opacity = '0.12'; return; }
+        img.dataset.retries = retries + 1;
+        img.style.opacity = '0.3';
+        try {
+          const cid = lastReaderChapterId;
+          const src = lastReaderSource || 'mangadex';
+          if (!cid) return;
+          const r = await fetch(`${API}/pages?id=${cid}&source=${src}`);
+          const data = await r.json();
+          const idx = parseInt(img.dataset.idx || '0');
+          const newUrl = (data.pages || [])[idx];
+          if (newUrl && newUrl !== img.src) {
+            img.src = newUrl;
+            img.style.opacity = '1';
+          }
+        } catch { img.style.opacity = '0.5'; }
+      });
+    }
+
     const imgs = document.querySelectorAll('#pages-container img[data-src]');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const img = entry.target;
+          attachRetry(img);
           img.src = img.dataset.src;
           img.removeAttribute('data-src');
           observer.unobserve(img);
         }
       });
-    }, {rootMargin:'400px'});
+    }, {rootMargin:'500px'});
     imgs.forEach(img => observer.observe(img));
     const endNav = document.getElementById('reader-end-nav');
     endNav.style.display = 'flex';
