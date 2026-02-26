@@ -162,7 +162,8 @@ def mdex_search(q, lang, tags=None):
     try:
         data = mdex_get("/manga", params)
         results = [_mdex_parse_manga(m) for m in data.get("data",[])]
-        cache.set(ck, results, 600)
+        if results:
+            cache.set(ck, results, 600)
         return results
     except Exception as e:
         print(f"MangaDex search erro: {e}"); return []
@@ -182,21 +183,19 @@ def mdex_chapters(mid, lang):
             "volume":attrs.get("volume") or "","title":attrs.get("title") or "",
             "lang":attrs.get("translatedLanguage",""),"pages":attrs.get("pages",0)})
     total = data.get("total",0)
-    cache.set(ck, (chapters,total), 1800)
+    if chapters:
+        cache.set(ck, (chapters,total), 1800)
     return chapters, total
 
 def mdex_pages(cid):
-    ck = f"mdex_pages:{cid}"
-    c = cache.get(ck)
-    if c is not None: return c
+    # NÃO cacheamos páginas MangaDex: o baseUrl expira em ~15min
+    # cache longo causava imagens quebradas durante leitura prolongada
     data = fetch(f"{MDEX}/at-home/server/{cid}")
     base = data.get("baseUrl","")
     ch = data.get("chapter",{})
     hash_ = ch.get("hash","")
     imgs = ch.get("data",[])
-    pages = [f"{base}/data/{hash_}/{img}" for img in imgs]
-    cache.set(ck, pages, 3600)
-    return pages
+    return [f"{base}/data/{hash_}/{img}" for img in imgs]
 
 # ─── MANGAZORD ───────────────────────────────────────────────────────────────
 
@@ -244,7 +243,10 @@ def mzord_search(q):
                 "cover":cover,"status":attrs.get("status",""),"tags":tags[:6],"score":None,
                 "external":None,"tipo":tipo_map.get(orig_lang,""),"originalLanguage":orig_lang,
                 "availableLangs":attrs.get("availableTranslatedLanguages",[])})
-        cache.set(ck, results, 600)
+        # Só cacheia se realmente retornou resultados
+        # Evita cachear lista vazia quando MangaZord está fora do ar
+        if results:
+            cache.set(ck, results, 600)
         return results
     except Exception as e:
         print(f"MangaZord search erro: {e}"); return []
@@ -263,7 +265,8 @@ def mzord_chapters(mid, lang):
                 "volume":attrs.get("volume") or "","title":attrs.get("title") or "",
                 "lang":attrs.get("translatedLanguage","pt-br"),"pages":attrs.get("pages",0)})
         total = data.get("total", len(chapters))
-        cache.set(ck, (chapters,total), 1800)
+        if chapters:
+            cache.set(ck, (chapters,total), 1800)
         return chapters, total
     except Exception as e:
         print(f"MangaZord chapters erro: {e}"); return [], 0
@@ -285,6 +288,7 @@ def mzord_pages(cid):
             pages = [f"https://mangazord.com/api/proxy/page/{cid}/{hash_}/{img}" for img in imgs]
             cache.set(ck, pages, 3600)
             return pages
+        # Não cacheia lista vazia — MangaZord pode ter estado fora
         return []
     except Exception as e:
         print(f"MangaZord pages erro para {cid}: {e}"); return []
@@ -316,7 +320,8 @@ def comick_search(q, lang, tags=None):
             results.append({"id":mid,"source":"comick","slug":slug,"title":title,
                 "description":str(desc)[:400],"cover":cover,"status":status,
                 "tags":tags_list[:6],"score":m.get("rating"),"external":None})
-        cache.set(ck, results, 600)
+        if results:
+            cache.set(ck, results, 600)
         return results
     except: return []
 
@@ -334,7 +339,8 @@ def comick_chapters(hid, slug, lang):
                 "chapter":str(c2.get("chap") or "?"),"volume":str(c2.get("vol") or ""),
                 "title":c2.get("title") or "","lang":c2.get("lang",""),"pages":c2.get("images_count",0)})
         result = (chapters, len(chapters))
-        cache.set(ck, result, 1800)
+        if chapters:
+            cache.set(ck, result, 1800)
         return result
     except: return [], 0
 
@@ -351,7 +357,8 @@ def comick_pages(hid):
             b2key = img.get("b2key") or img.get("url","")
             if b2key:
                 pages.append(b2key if b2key.startswith("http") else f"https://meo.comick.pictures/{b2key}")
-        cache.set(ck, pages, 3600)
+        if pages:
+            cache.set(ck, pages, 3600)
         return pages
     except: return []
 
