@@ -1242,20 +1242,149 @@ header::after {
 <script>
 const API = 'https://mangarx-backend.onrender.com/api';
 
-// Acorda o servidor Render (free tier hiberna após 15min)
-let _serverReady = false;
+// APIs diretas (chamadas do navegador — evita bloqueio de IP do Render)
+const MDEX = 'https://api.mangadex.org';
+const MDEX_UPLOADS = 'https://uploads.mangadex.org';
+const COMICK = 'https://api.comick.fun';
+
+const MDEX_TAGS = {
+  'action':'391b0423-d847-456f-aff0-8b0cfc03066b','adventure':'87cc87cd-a395-47af-b27a-93258283bbc6',
+  'comedy':'4d32cc48-9f00-4cca-9b5a-a839f0764984','drama':'b9af3a63-f058-46de-a9a0-e0c13906197a',
+  'fantasy':'cdc58593-87dd-415e-bbc0-2ec27bf404cc','horror':'cdad7e68-1419-41dd-bdce-27753074a640',
+  'mystery':'ee968100-4191-4968-93d3-f82d72be7e46','romance':'423e2eae-a7a2-4a8b-ac03-a8351462d71d',
+  'sci-fi':'256c8bd9-4904-4360-bf4f-508a76d67183','slice-of-life':'e5301a23-ebd9-49dd-a0cb-2add944c7fe9',
+  'sports':'69964a64-2f90-4d33-beeb-f3ed2875eb4c','supernatural':'eabc5b4c-6aff-42f3-b657-3e90cbd00b75',
+  'psychological':'3b60b75c-a2d7-4860-ab56-05f391bb889c','historical':'33771934-028e-4cb3-8744-691e866a923e',
+  'mecha':'50880a9d-5440-4732-9afb-8f457127e836','isekai':'ace04997-f6bd-436e-b261-779182193d3d',
+  'martial-arts':'799c202e-7daa-44eb-9cf7-8a3c0441531e','school-life':'caaa44eb-cd40-4177-b930-79d3ef2afe87',
+  'harem':'aafb99c1-7f60-43fa-b75f-fc9502ce29c7',
+};
+
+function mdexParseManga(m) {
+  const mid = m.id, attrs = m.attributes;
+  const tm = attrs.title||{};
+  const name = tm['pt-br']||tm['pt']||tm['en']||Object.values(tm)[0]||'Sem título';
+  const dm = attrs.description||{};
+  const desc = dm['pt-br']||dm['pt']||dm['en']||'';
+  let cover = '';
+  for (const rel of m.relationships||[]) {
+    if (rel.type==='cover_art') {
+      const fname = rel.attributes?.fileName||'';
+      if (fname) cover = `${MDEX_UPLOADS}/covers/${mid}/${fname}.256.jpg`;
+    }
+  }
+  const ol = attrs.originalLanguage||'';
+  const tipoMap = {ja:'Manga',ko:'Manhwa',zh:'Manhua','zh-hk':'Manhua'};
+  const tags = (attrs.tags||[]).map(t=>t.attributes?.name?.en||'').filter(Boolean);
+  return {id:mid,source:'mangadex',title:name,description:desc.slice(0,400),
+    cover,status:attrs.status||'',tags:tags.slice(0,6),score:null,external:null,
+    tipo:tipoMap[ol]||'',originalLanguage:ol};
+}
+
+async function mdexSearch(q, lang, tags) {
+  const params = new URLSearchParams({title:q,limit:'15','order[relevance]':'desc'});
+  params.append('availableTranslatedLanguage[]', lang);
+  params.append('availableTranslatedLanguage[]', 'pt');
+  params.append('availableTranslatedLanguage[]', 'en');
+  params.append('includes[]', 'cover_art');
+  for (const cr of ['safe','suggestive','erotica']) params.append('contentRating[]', cr);
+  if (tags) for (const t of tags) { const id=MDEX_TAGS[t]; if(id) params.append('includedTags[]',id); }
+  const r = await fetch(`${MDEX}/manga?${params}`);
+  if (!r.ok) return [];
+  const d = await r.json();
+  return (d.data||[]).map(mdexParseManga);
+}
+
+async function comickSearch(q, lang) {
+  const lc = lang.startsWith('pt') ? 'pt' : 'en';
+  const r = await fetch(`${COMICK}/v1.0/search?q=${encodeURIComponent(q)}&limit=15&lang=${lc}&t=true`,
+    {headers:{Referer:'https://comick.fun'}});
+  if (!r.ok) return [];
+  const data = await r.json();
+  return (Array.isArray(data)?data:[]).map(m => {
+    const mid = m.hid||m.id||''; const slug = m.slug||'';
+    const covers = m.md_covers||[]; let cover = '';
+    if (covers[0]?.b2key) cover = `https://meo.comick.pictures/${covers[0].b2key}`;
+    const statusMap = {1:'ongoing',2:'completed',3:'cancelled',4:'hiatus'};
+    return {id:mid,source:'comick',slug,title:m.title||slug,
+      description:String(m.desc||'').slice(0,400),cover,
+      status:statusMap[m.status]||'',tags:(m.genres||[]).map(g=>g.name||'').slice(0,6),
+      score:m.rating,external:null};
+  });
+}
+
+async function mdexReleases(lang) {
+  const params = new URLSearchParams({'order[readableAt]':'desc',limit:'20'});
+  params.append('translatedLanguage[]', lang);
+  params.append('translatedLanguage[]', 'pt');
+  params.append('translatedLanguage[]', 'en');
+  params.append('includes[]', 'manga');
+  params.append('includes[]', 'scanlation_group');
+  for (const cr of ['safe','suggestive','erotica']) params.append('contentRating[]', cr);
+  const r = await fetch(`${MDEX}/chapter?${params}`);
+  if (!r.ok) return [];
+  const d = await r.json();
+  const releases = []; const seen = new Set();
+  for (const c of d.data||[]) {
+    const mangaRel = c.relationships?.find(r=>r.type==='manga');
+    if (!mangaRel) continue;
+    const mid = mangaRel.id;
+    if (seen.has(mid)) continue; seen.add(mid);
+    const tm = mangaRel.attributes?.title||{};
+    const title = tm['pt-br']||tm['pt']||tm['en']||Object.values(tm)[0]||mid.slice(0,8)+'...';
+    releases.push({chapter_id:c.id,chapter_num:c.attributes?.chapter||'?',
+      chapter_title:c.attributes?.title||'',manga_id:mid,manga_title:title,
+      cover:'',lang:c.attributes?.translatedLanguage||'',source:'mangadex'});
+  }
+  // busca covers em lote
+  if (releases.length) {
+    const ids = [...new Set(releases.map(r=>r.manga_id))].slice(0,20);
+    const p2 = new URLSearchParams({limit:'20'}); ids.forEach(id=>p2.append('ids[]',id)); p2.append('includes[]','cover_art');
+    try {
+      const r2 = await fetch(`${MDEX}/manga?${p2}`);
+      if (r2.ok) {
+        const d2 = await r2.json();
+        const covers = {};
+        for (const m of d2.data||[]) {
+          for (const rel of m.relationships||[]) {
+            if (rel.type==='cover_art'&&rel.attributes?.fileName)
+              covers[m.id]=`${MDEX_UPLOADS}/covers/${m.id}/${rel.attributes.fileName}.256.jpg`;
+          }
+        }
+        for (const rel of releases) if (covers[rel.manga_id]) rel.cover = covers[rel.manga_id];
+      }
+    } catch(e) {}
+  }
+  return releases;
+}
+
+async function mdexPopular(lang) {
+  const params = new URLSearchParams({limit:'12',offset:'0','order[followedCount]':'desc',hasAvailableChapters:'true'});
+  params.append('includes[]','cover_art');
+  for (const cr of ['safe','suggestive','erotica']) params.append('contentRating[]', cr);
+  params.append('availableTranslatedLanguage[]', lang);
+  params.append('availableTranslatedLanguage[]', 'pt');
+  params.append('availableTranslatedLanguage[]', 'en');
+  const r = await fetch(`${MDEX}/manga?${params}`);
+  if (!r.ok) return [];
+  const d = await r.json();
+  return (d.data||[]).map(mdexParseManga);
+}
+
+// Acorda o servidor Render (só usado para Mangazord + Supabase)
 (async function wakeServer() {
   try {
-    await fetch(`${API}/cache/stats`, { signal: AbortSignal.timeout(30000) });
-    _serverReady = true;
+    await fetch(`${API}/cache/stats`, { signal: AbortSignal.timeout(20000) });
     console.log('✅ Servidor acordado');
   } catch(e) {
-    console.warn('⚠️ Servidor pode estar acordando:', e.message);
+    console.warn('⚠️ Servidor Render offline (Mangazord indisponível):', e.message);
   }
 })();
 
 function proxyImg(url) {
   if (!url) return '';
+  // Imagens do MangaDex e ComicK podem ser carregadas diretamente
+  if (url.includes('uploads.mangadex.org') || url.includes('meo.comick.pictures')) return url;
   return `${API}/image?url=${encodeURIComponent(url)}`;
 }
 
@@ -1360,31 +1489,22 @@ function setServerBanner(msg, isError) {
 }
 
 async function loadHomeData() {
-  setServerBanner('⚡ CONECTANDO AO SERVIDOR...', false);
+  setServerBanner(null, false);
   const relEl = document.getElementById('releases-scroll');
   const popEl = document.getElementById('popular-scroll');
   if (relEl) relEl.innerHTML = '<div class="loader" style="padding:1rem 0">CARREGANDO DADOS</div>';
   if (popEl) popEl.innerHTML = '<div class="loader" style="padding:1rem 0">CARREGANDO DADOS</div>';
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 40000);
-    const [relData, popData] = await Promise.all([
-      fetch(`${API}/releases?lang=pt-br`, { signal: controller.signal }).then(r=>r.json()).catch(()=>({releases:[]})),
-      fetch(`${API}/popular?lang=pt-br`, { signal: controller.signal }).then(r=>r.json()).catch(()=>({results:[]}))
-    ]);
-    clearTimeout(timeout);
-    const hasData = (relData.releases||[]).length > 0 || (popData.results||[]).length > 0;
-    if (hasData) {
-      setServerBanner(null, false);
-    } else {
-      setServerBanner('⚠️ SERVIDOR INDISPONÍVEL — O servidor pode estar acordando (pode levar ~30s)', true);
-    }
-    renderReleases(relData.releases||[]);
-    renderPopular(popData.results||[]);
-  } catch(e) {
-    setServerBanner('❌ SEM CONEXÃO COM O SERVIDOR — Clique em "Tentar novamente"', true);
-    if (relEl) relEl.innerHTML = '<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem;letter-spacing:2px">// SERVIDOR OFFLINE</div>';
-    if (popEl) popEl.innerHTML = '<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem">// SERVIDOR OFFLINE</div>';
+  // Chama MangaDex direto do navegador — sem depender do backend Render
+  const [relRes, popRes] = await Promise.allSettled([
+    mdexReleases('pt-br'),
+    mdexPopular('pt-br')
+  ]);
+  const releases = relRes.status==='fulfilled' ? relRes.value : [];
+  const popular = popRes.status==='fulfilled' ? popRes.value : [];
+  renderReleases(releases);
+  renderPopular(popular);
+  if (!releases.length && !popular.length) {
+    setServerBanner('⚠️ MangaDex indisponível — tente novamente em alguns minutos', true);
   }
 }
 
@@ -1482,39 +1602,47 @@ async function doSearch(q) {
   if (ra) ra.style.display = selectedGenres.size>0?'flex':'none';
   const titlePart = q.trim() ? `"${q.toUpperCase()}"` : 'ALL';
   document.getElementById('results-title').textContent = `RESULTADOS: ${titlePart}`;
-  document.getElementById('results-grid').innerHTML = '<div class="loader">BUSCANDO EM TODAS AS FONTES...<br><small style="opacity:0.5;font-size:0.7rem">Aguarde, o servidor pode estar acordando</small></div>';
+  document.getElementById('results-grid').innerHTML = '<div class="loader">BUSCANDO EM TODAS AS FONTES...</div>';
   const lang = document.getElementById('header-lang')?.value||'pt-br';
+  const tags = selectedGenres.size>0 ? [...selectedGenres] : null;
   try {
-    let url = `${API}/search?q=${encodeURIComponent(q)}&lang=${lang}&source=all`;
-    if (selectedGenres.size>0) url += '&'+[...selectedGenres].map(g=>`tags[]=${g}`).join('&');
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 45000);
-    let r;
+    // 1. Tenta Mangazord via backend primeiro
+    let mzordResults = [];
     try {
-      r = await fetch(url, { signal: controller.signal });
-    } catch(fetchErr) {
-      clearTimeout(timeout);
-      if (fetchErr.name === 'AbortError') {
-        document.getElementById('results-grid').innerHTML = '<div class="loader">TIMEOUT — Servidor demorou demais.<br><small style="opacity:0.6">Tente novamente em alguns segundos.</small></div>';
-      } else {
-        document.getElementById('results-grid').innerHTML = '<div class="loader">ERRO DE CONEXÃO — Verifique sua internet ou tente novamente.</div>';
-      }
+      const mzUrl = `${API}/search?q=${encodeURIComponent(q)}&lang=${lang}&source=mangazord`;
+      const mzR = await fetch(mzUrl, { signal: AbortSignal.timeout(8000) });
+      if (mzR.ok) { const d = await mzR.json(); mzordResults = d.results||[]; }
+    } catch(e) { console.warn('Mangazord indisponível:', e.message); }
+
+    if (mzordResults.length) {
+      allResults = mzordResults;
+      renderGrid(allResults, 'results-grid');
       return;
     }
-    clearTimeout(timeout);
-    if (!r.ok) {
-      document.getElementById('results-grid').innerHTML = `<div class="loader">ERRO DO SERVIDOR (${r.status}) — Tente novamente.</div>`;
-      return;
+
+    // 2. Mangazord vazio → chama MangaDex + ComicK direto do navegador
+    document.getElementById('results-grid').innerHTML = '<div class="loader">BUSCANDO NO MANGADEX E COMICK...</div>';
+    const [mdexRes, comickRes] = await Promise.allSettled([
+      mdexSearch(q, lang, tags),
+      comickSearch(q, lang)
+    ]);
+    const mdex = mdexRes.status==='fulfilled' ? mdexRes.value : [];
+    const comick = comickRes.status==='fulfilled' ? comickRes.value : [];
+    // deduplica por título
+    const seen = new Set(); const combined = [];
+    for (const r of [...mdex, ...comick]) {
+      const key = r.title.toLowerCase().trim().slice(0,30);
+      if (!seen.has(key)) { seen.add(key); combined.push(r); }
+      if (combined.length >= 15) break;
     }
-    const data = await r.json();
-    allResults = data.results||[];
+    allResults = combined;
     if (!allResults.length) {
       document.getElementById('results-grid').innerHTML = '<div class="loader">NENHUM RESULTADO ENCONTRADO</div>';
       return;
     }
     renderGrid(allResults, 'results-grid');
   } catch(e) {
-    document.getElementById('results-grid').innerHTML = '<div class="loader">ERRO INESPERADO — Tente novamente.</div>';
+    document.getElementById('results-grid').innerHTML = '<div class="loader">ERRO — Verifique sua conexão e tente novamente.</div>';
   }
 }
 
