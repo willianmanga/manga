@@ -1625,7 +1625,6 @@ async function openChapter(id, num, source) {
 
     // Retry automático: URL do MangaDex at-home expira em ~15min
     // Se imagem quebrar durante leitura, rebusca as páginas e troca a src
-    let retryPromise = null;
     function attachRetry(img) {
       img.addEventListener('error', async function() {
         const retries = parseInt(img.dataset.retries || '0');
@@ -1636,21 +1635,15 @@ async function openChapter(id, num, source) {
           const cid = lastReaderChapterId;
           const src = lastReaderSource || 'mangadex';
           if (!cid) return;
-          if (!retryPromise) {
-            retryPromise = fetch(`${API}/pages?id=${cid}&source=${src}`).then(r => r.json());
-          }
-          const data = await retryPromise;
+          const r = await fetch(`${API}/pages?id=${cid}&source=${src}`);
+          const data = await r.json();
           const idx = parseInt(img.dataset.idx || '0');
           const newUrl = (data.pages || [])[idx];
           if (newUrl && newUrl !== img.src) {
             img.src = newUrl;
             img.style.opacity = '1';
           }
-          retryPromise = null;
-        } catch (e) {
-          img.style.opacity = '0.5';
-          retryPromise = null;
-        }
+        } catch { img.style.opacity = '0.5'; }
       });
     }
 
@@ -1744,117 +1737,8 @@ async function renderHistory() {
   }).join('');
 }
 
-// ── ROTEAMENTO E RESTAURAÇÃO DE ESTADO ────────────────────────────────────────
-function getRouteState() {
-  const hash = window.location.hash.slice(1); // Remove o '#'
-  if (!hash) return { page: 'home' };
-  const parts = hash.split('/');
-  if (parts[0] === 'reader' && parts[1]) {
-    return { page: 'reader', mangaId: parts[1], chapterId: parts[2] };
-  }
-  if (parts[0] === 'detail' && parts[1]) {
-    return { page: 'detail', mangaId: parts[1] };
-  }
-  if (parts[0] === 'search' && parts[1]) {
-    return { page: 'results', query: decodeURIComponent(parts[1]) };
-  }
-  if (parts[0] === 'favorites') return { page: 'favorites' };
-  if (parts[0] === 'history') return { page: 'history' };
-  if (parts[0] === 'explore') return { page: 'explore' };
-  return { page: 'home' };
-}
-
-function setRouteState(page, params = {}) {
-  let hash = page;
-  if (page === 'reader' && params.mangaId && params.chapterId) {
-    hash = `reader/${params.mangaId}/${params.chapterId}`;
-  } else if (page === 'detail' && params.mangaId) {
-    hash = `detail/${params.mangaId}`;
-  } else if (page === 'search' && params.query) {
-    hash = `search/${encodeURIComponent(params.query)}`;
-  }
-  window.location.hash = hash;
-}
-
-function restoreState() {
-  const route = getRouteState();
-  if (route.page === 'home') {
-    showPage('home');
-    loadHomeData();
-  } else if (route.page === 'detail' && route.mangaId) {
-    // Tentar restaurar a página de detalhes
-    const savedManga = sessionStorage.getItem(`manga_${route.mangaId}`);
-    if (savedManga) {
-      try {
-        const manga = JSON.parse(savedManga);
-        openManga(manga);
-      } catch (e) {
-        console.error('Erro ao restaurar manga:', e);
-        showPage('home');
-      }
-    } else {
-      showPage('home');
-    }
-  } else if (route.page === 'reader' && route.mangaId && route.chapterId) {
-    // Tentar restaurar o leitor
-    const savedManga = sessionStorage.getItem(`manga_${route.mangaId}`);
-    if (savedManga) {
-      try {
-        const manga = JSON.parse(savedManga);
-        currentManga = manga;
-        openChapter(route.chapterId, '?', manga.source || 'mangadex');
-      } catch (e) {
-        console.error('Erro ao restaurar capítulo:', e);
-        showPage('home');
-      }
-    } else {
-      showPage('home');
-    }
-  } else if (route.page === 'search' && route.query) {
-    document.getElementById('header-search').value = route.query;
-    doSearch(route.query);
-  } else if (route.page === 'favorites') {
-    showPage('favorites');
-  } else if (route.page === 'history') {
-    showPage('history');
-  } else if (route.page === 'explore') {
-    showPage('explore');
-  } else {
-    showPage('home');
-    loadHomeData();
-  }
-}
-
-window.addEventListener('hashchange', restoreState);
-
-// Modificar showPage para atualizar o hash
-const originalShowPage = showPage;
-showPage = function(name) {
-  originalShowPage(name);
-  if (name !== 'reader' && name !== 'detail') {
-    window.location.hash = name === 'home' ? '' : name;
-  }
-};
-
-// Modificar openManga para salvar estado e atualizar hash
-const originalOpenManga = openManga;
-openManga = async function(manga) {
-  sessionStorage.setItem(`manga_${manga.id}`, JSON.stringify(manga));
-  window.location.hash = `detail/${manga.id}`;
-  return originalOpenManga(manga);
-};
-
-// Modificar openChapter para atualizar hash
-const originalOpenChapter = openChapter;
-openChapter = async function(id, num, source) {
-  if (currentManga) {
-    window.location.hash = `reader/${currentManga.id}/${id}`;
-  }
-  return originalOpenChapter(id, num, source);
-};
-
-// Inicializar
-restoreState();
+// ── INIT ─────────────────────────────────────────────────────────────────────
+loadHomeData();
 </script>
 </body>
 </html>
