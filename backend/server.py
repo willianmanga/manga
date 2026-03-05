@@ -567,6 +567,24 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/favoritos/remover":
                 supa_delete("favoritos","manga_id",body.get("manga_id",""))
                 self.send_json({"ok":True})
+            elif path == "/api/notif/salvar":
+                # Salva mapa global { manga_id: ultimo_cap_visto }
+                supa_upsert("config",{"chave":"notif_seen","valor":body.get("seen",{})},"chave")
+                self.send_json({"ok":True})
+            elif path == "/api/progresso/salvar":
+                supa_upsert("progresso",{
+                    "manga_id":    body.get("manga_id",""),
+                    "manga_title": body.get("manga_title",""),
+                    "manga_cover": body.get("manga_cover",""),
+                    "manga_source":body.get("manga_source",""),
+                    "manga_data":  body.get("manga_data",{}),
+                    "last_chapter_id":  body.get("last_chapter_id",""),
+                    "last_chapter_num": body.get("last_chapter_num",""),
+                    "last_chapter_src": body.get("last_chapter_src",""),
+                    "read_chapters":    body.get("read_chapters",{}),
+                    "notif_seen":       body.get("notif_seen",{})
+                }, "manga_id")
+                self.send_json({"ok":True})
             else:
                 self.send_response(404); self.end_headers()
         except Exception as e:
@@ -650,6 +668,19 @@ class Handler(BaseHTTPRequestHandler):
                     dados = supa_get("favoritos",{"order":"salvo_em.desc"})
                     self.send_json({"favoritos":dados})
                 except Exception as e: self.send_json({"favoritos":[],"error":str(e)})
+
+            elif path == "/api/progresso":
+                try:
+                    dados = supa_get("progresso",{"order":"atualizado_em.desc"})
+                    self.send_json({"progresso":dados})
+                except Exception as e: self.send_json({"progresso":[],"error":str(e)})
+
+            elif path == "/api/notif/seen":
+                try:
+                    rows = supa_get("config",{"chave":"eq.notif_seen"})
+                    seen = rows[0]["valor"] if rows else {}
+                    self.send_json({"seen":seen})
+                except Exception as e: self.send_json({"seen":{},"error":str(e)})
 
             elif path == "/api/explore":
                 tipo = g("type","all"); lang = g("lang","pt-br")
