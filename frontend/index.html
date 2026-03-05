@@ -1110,6 +1110,11 @@ header::after {
     </div>
   </div>
 
+  <div id="server-banner" style="display:none;margin:0 0 1rem 0;padding:0.7rem 1.2rem;border:1px solid var(--border);border-radius:4px;background:var(--surface);font-family:'Share Tech Mono',monospace;font-size:0.72rem;letter-spacing:1px;color:var(--muted);display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+    <span id="server-status-text">⚡ CONECTANDO AO SERVIDOR...</span>
+    <button onclick="retryHomeData()" style="background:linear-gradient(135deg,var(--cyan),var(--purple));border:none;color:#000;padding:0.3rem 0.9rem;font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;border-radius:3px">TENTAR NOVAMENTE</button>
+  </div>
+
   <div class="home-section">
     <div class="section-title">LANÇAMENTOS DE HOJE</div>
     <div class="h-scroll" id="releases-scroll">
@@ -1341,14 +1346,51 @@ async function dbLoadFavorites() {
 }
 
 // ── HOME DATA ─────────────────────────────────────────────────────────────────
+function setServerBanner(msg, isError) {
+  const banner = document.getElementById('server-banner');
+  const text = document.getElementById('server-status-text');
+  if (!banner || !text) return;
+  if (msg) {
+    banner.style.display = 'flex';
+    text.textContent = msg;
+    text.style.color = isError ? 'var(--pink)' : 'var(--muted)';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
 async function loadHomeData() {
-  Promise.all([
-    fetch(`${API}/releases?lang=pt-br`).then(r=>r.json()).catch(()=>({releases:[]})),
-    fetch(`${API}/popular?lang=pt-br`).then(r=>r.json()).catch(()=>({results:[]}))
-  ]).then(([relData,popData]) => {
+  setServerBanner('⚡ CONECTANDO AO SERVIDOR...', false);
+  const relEl = document.getElementById('releases-scroll');
+  const popEl = document.getElementById('popular-scroll');
+  if (relEl) relEl.innerHTML = '<div class="loader" style="padding:1rem 0">CARREGANDO DADOS</div>';
+  if (popEl) popEl.innerHTML = '<div class="loader" style="padding:1rem 0">CARREGANDO DADOS</div>';
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 40000);
+    const [relData, popData] = await Promise.all([
+      fetch(`${API}/releases?lang=pt-br`, { signal: controller.signal }).then(r=>r.json()).catch(()=>({releases:[]})),
+      fetch(`${API}/popular?lang=pt-br`, { signal: controller.signal }).then(r=>r.json()).catch(()=>({results:[]}))
+    ]);
+    clearTimeout(timeout);
+    const hasData = (relData.releases||[]).length > 0 || (popData.results||[]).length > 0;
+    if (hasData) {
+      setServerBanner(null, false);
+    } else {
+      setServerBanner('⚠️ SERVIDOR INDISPONÍVEL — O servidor pode estar acordando (pode levar ~30s)', true);
+    }
     renderReleases(relData.releases||[]);
     renderPopular(popData.results||[]);
-  });
+  } catch(e) {
+    setServerBanner('❌ SEM CONEXÃO COM O SERVIDOR — Clique em "Tentar novamente"', true);
+    if (relEl) relEl.innerHTML = '<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem;letter-spacing:2px">// SERVIDOR OFFLINE</div>';
+    if (popEl) popEl.innerHTML = '<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem">// SERVIDOR OFFLINE</div>';
+  }
+}
+
+async function retryHomeData() {
+  setServerBanner('⚡ RECONECTANDO...', false);
+  await loadHomeData();
 }
 
 function renderReleases(releases) {
