@@ -1377,6 +1377,10 @@ function renderPopular(items) {
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(name+'-page').classList.add('active');
+  // Salva página na URL para sobreviver ao F5 (exceto detail/reader que dependem de estado em memória)
+  if (!['detail','reader'].includes(name)) {
+    history.replaceState(null, '', '#' + name);
+  }
   if (name==='favorites') renderFavorites();
   if (name==='history') renderHistory();
   if (name==='results') renderGenrePills('results-genre-pills');
@@ -1540,13 +1544,19 @@ async function loadChapters() {
   notice.style.display = 'none';
   try {
     const slug = currentManga.slug||'';
-    let r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    let r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`, { signal: ctrl.signal });
+    clearTimeout(timer);
     let data = await r.json();
     const fallbacks = {'pt-br':['pt','en'],'pt':['pt-br','en'],'en':[]};
     let usedLang = lang;
     if (!data.chapters||!data.chapters.length) {
       for (const fl of (fallbacks[lang]||[])) {
-        r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${fl}&source=${currentManga.source}&slug=${slug}`);
+        const ctrl2 = new AbortController();
+        const timer2 = setTimeout(() => ctrl2.abort(), 10000);
+        r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${fl}&source=${currentManga.source}&slug=${slug}`, { signal: ctrl2.signal });
+        clearTimeout(timer2);
         data = await r.json();
         if (data.chapters&&data.chapters.length) { usedLang=fl; break; }
       }
@@ -1685,28 +1695,39 @@ function navChapter(dir) {
   openChapter(c.id, c.chapter, c.source||currentManga?.source);
 }
 
-function goBackToDetail() { showPage('detail'); loadChapters(); }
+function goBackToDetail() { showPage('detail'); }
 
 // ── FAVORITES ─────────────────────────────────────────────────────────────────
+let _favsCache = null;
+async function _getFavs() {
+  if (_favsCache === null) _favsCache = await dbLoadFavorites();
+  return _favsCache;
+}
 async function toggleFav() {
   if (!currentManga) return;
-  const favs = await dbLoadFavorites();
+  const favs = await _getFavs();
   const isFav = favs.some(f=>f.manga_id===currentManga.id);
-  if (isFav) await dbRemoveFav(currentManga.id);
-  else await dbSaveFav(currentManga);
+  if (isFav) {
+    await dbRemoveFav(currentManga.id);
+    _favsCache = favs.filter(f=>f.manga_id!==currentManga.id);
+  } else {
+    await dbSaveFav(currentManga);
+    _favsCache = null; // força reload na próxima
+  }
   updateFavBtn();
 }
 async function updateFavBtn() {
   const btn = document.getElementById('fav-btn');
-  const favs = await dbLoadFavorites();
+  const favs = await _getFavs();
   const isFav = currentManga&&favs.some(f=>f.manga_id===currentManga.id);
   btn.textContent = isFav ? '★ FAVORITADO' : '♡ FAVORITAR';
   btn.classList.toggle('saved', !!isFav);
 }
 async function renderFavorites() {
+  _favsCache = null; // sempre atualiza ao abrir a aba
   const grid = document.getElementById('favorites-grid');
   grid.innerHTML = '<div class="loader">CARREGANDO</div>';
-  const dbFavs = await dbLoadFavorites();
+  const dbFavs = await _getFavs();
   if (!dbFavs.length) { grid.innerHTML = '<div class="empty-msg"><span>VAZIO</span>Nenhum favorito salvo.</div>'; return; }
   const items = dbFavs.map(f=>{
     const d=f.manga_data||{};
@@ -1738,6 +1759,15 @@ async function renderHistory() {
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
+(function restorePageFromHash() {
+  const hash = location.hash.replace('#','');
+  const valid = ['home','explore','favorites','history','results'];
+  if (hash && valid.includes(hash)) {
+    showPage(hash);
+  } else {
+    showPage('home');
+  }
+})();
 loadHomeData();
 </script>
 </body>
