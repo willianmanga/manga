@@ -381,19 +381,19 @@ def priority_search(q, lang, tags=None):
         fut_mdex    = executor.submit(mdex_search, q, lang, tags)
         fut_comick  = executor.submit(comick_search, q, lang, tags)
 
-        try: mzord_result  = fut_mzord.result(timeout=10)
+        try: mzord_result  = fut_mzord.result(timeout=8)
         except Exception as e: print(f"MangaZord timeout/erro: {e}")
 
-        try: mdex_result   = fut_mdex.result(timeout=10)
+        try: mdex_result   = fut_mdex.result(timeout=8)
         except Exception as e: print(f"MangaDex timeout/erro: {e}")
 
-        try: comick_result = fut_comick.result(timeout=10)
+        try: comick_result = fut_comick.result(timeout=8)
         except Exception as e: print(f"ComicK timeout/erro: {e}")
 
     # MangaZord tem prioridade total — se encontrou algo, retorna só ele
     if mzord_result:
         print(f"Busca '{q}': usando MangaZord ({len(mzord_result)} resultados)")
-        return mzord_result
+        return mzord_result[:15]
 
     # MangaZord vazio → combina MangaDex + ComicK (deduplicando por título)
     print(f"Busca '{q}': MangaZord vazio, usando MangaDex+ComicK")
@@ -403,6 +403,8 @@ def priority_search(q, lang, tags=None):
         key = r["title"].lower().strip()[:30]
         if key not in seen:
             seen.add(key); unique.append(r)
+            if len(unique) >= 15:
+                break
     return unique
 
 # ─── JIKAN ───────────────────────────────────────────────────────────────────
@@ -414,13 +416,14 @@ def jikan_score(title):
     c = cache.get(ck)
     if c is not None: return c
     try:
-        time.sleep(0.4)
+        time.sleep(0.2)
         data = fetch(f"{JIKAN}/manga?q={urllib.parse.quote(title)}&limit=1")
         items = data.get("data",[])
         if items:
             score = items[0].get("score")
-            cache.set(ck, score, 86400)
-            return score
+            if score:
+                cache.set(ck, score, 86400)
+                return score
     except: pass
     return None
 
