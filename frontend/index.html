@@ -27,6 +27,11 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -1174,6 +1179,22 @@ header::after {
     </select>
     <span id="chapter-count" style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--muted)"></span>
   </div>
+  <!-- Continuar lendo -->
+  <div id="continue-bar" style="display:none;align-items:center;gap:0.8rem;background:var(--surface2);border:1px solid var(--cyan);border-radius:4px;padding:0.7rem 1rem;margin-bottom:0.8rem;cursor:pointer;transition:background 0.2s"
+       onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='var(--surface2)'">
+    <span id="continue-label" style="font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:2px;flex:1"></span>
+    <span style="font-size:0.65rem;color:var(--muted);font-family:'Share Tech Mono',monospace">TOQUE PARA CONTINUAR →</span>
+  </div>
+  <!-- Progresso de leitura -->
+  <div id="read-progress-bar" style="display:none;margin-bottom:0.8rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:1px">// PROGRESSO DE LEITURA</span>
+      <span id="read-progress-text" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--cyan)"></span>
+    </div>
+    <div style="height:3px;background:var(--surface3);border-radius:2px;overflow:hidden">
+      <div class="prog-fill" style="height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:2px;transition:width 0.5s ease;width:0%"></div>
+    </div>
+  </div>
   <div id="lang-notice" class="lang-notice" style="display:none"></div>
   <div class="section-title">CAPÍTULOS</div>
   <div id="chapters-list" class="chapters-list"></div>
@@ -1295,10 +1316,64 @@ renderGenrePills('home-genre-pills');
 
 let currentManga = null, allResults = [];
 
-const state = {
-  readChapters: JSON.parse(localStorage.getItem('mrx_read') || '{}'),
-  save() { localStorage.setItem('mrx_read', JSON.stringify(this.readChapters)); }
-};
+// ── PROGRESSO & STATE (100% Supabase, cache em memória) ──────────────────────
+// Sem localStorage — funciona em qualquer dispositivo sincronizado
+
+let _progressoCache = null; // { manga_id: { last, read } }
+let _notifSeenCache = null; // { manga_id: ultimo_cap_num }
+
+// Carrega todo o progresso do Supabase uma única vez por sessão
+async function _getProgresso() {
+  if (_progressoCache !== null) return _progressoCache;
+  try {
+    const r = await fetch(`${API}/progresso`);
+    const d = await r.json();
+    _progressoCache = {};
+    for (const p of (d.progresso||[])) {
+      _progressoCache[p.manga_id] = {
+        last: { id: p.last_chapter_id, num: p.last_chapter_num, source: p.last_chapter_src },
+        read: p.read_chapters || {}
+      };
+    }
+  } catch { _progressoCache = {}; }
+  return _progressoCache;
+}
+
+// Carrega notif_seen do Supabase uma única vez por sessão
+async function _getNotifSeen() {
+  if (_notifSeenCache !== null) return _notifSeenCache;
+  try {
+    const r = await fetch(`${API}/notif/seen`);
+    const d = await r.json();
+    _notifSeenCache = d.seen || {};
+  } catch { _notifSeenCache = {}; }
+  return _notifSeenCache;
+}
+
+// Salva progresso: atualiza cache imediatamente, envia ao Supabase em background
+async function dbSaveProgresso(manga, chapterId, chapterNum, source) {
+  const prog = await _getProgresso();
+  if (!prog[manga.id]) prog[manga.id] = { last: {}, read: {} };
+  prog[manga.id].last = { id: chapterId, num: chapterNum, source };
+  prog[manga.id].read[chapterId] = true;
+
+  // Background — não bloqueia a UI
+  fetch(`${API}/progresso/salvar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      manga_id:         manga.id,
+      manga_title:      manga.title,
+      manga_cover:      manga.cover || '',
+      manga_source:     manga.source || '',
+      manga_data:       manga,
+      last_chapter_id:  chapterId,
+      last_chapter_num: chapterNum,
+      last_chapter_src: source,
+      read_chapters:    prog[manga.id].read
+    })
+  }).catch(() => {});
+}
 
 // ── DB ────────────────────────────────────────────────────────────────────────
 async function dbSaveHistory(manga, chapterId, chapterNum) {
@@ -1377,10 +1452,7 @@ function renderPopular(items) {
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(name+'-page').classList.add('active');
-  // Salva página na URL para sobreviver ao F5 (exceto detail/reader que dependem de estado em memória)
-  if (!['detail','reader'].includes(name)) {
-    history.replaceState(null, '', '#' + name);
-  }
+  if (!['detail','reader'].includes(name)) history.replaceState(null,'','#'+name);
   if (name==='favorites') renderFavorites();
   if (name==='history') renderHistory();
   if (name==='results') renderGenrePills('results-genre-pills');
@@ -1573,8 +1645,37 @@ async function loadChapters() {
       notice.style.display = 'block';
     }
     currentChapterList = data.chapters;
-    document.getElementById('chapter-count').textContent = `[${data.chapters.length} CAPÍTULOS]`;
-    const read = state.readChapters[currentManga.id]||{};
+    // Busca progresso do cache Supabase (já carregado na sessão)
+    const prog = await _getProgresso();
+    const p = prog[currentManga.id] || { read: {}, last: null };
+    const read = p.read;
+    const last = p.last;
+    const readCount = data.chapters.filter(c => read[c.id]).length;
+    const totalCount = data.chapters.length;
+    // Progresso de leitura
+    const progressPct = totalCount > 0 ? Math.round((readCount/totalCount)*100) : 0;
+    document.getElementById('chapter-count').textContent = `[${totalCount} CAPÍTULOS]`;
+    // Botão continuar lendo
+    const continueBar = document.getElementById('continue-bar');
+    if (last && read[last.id]) {
+      continueBar.style.display = 'flex';
+      document.getElementById('continue-label').textContent =
+        `▶ CONTINUAR — CAP. ${last.num}`;
+      continueBar.onclick = () => openChapter(last.id, last.num, last.source);
+    } else {
+      continueBar.style.display = 'none';
+    }
+    // Barra de progresso
+    const progBar = document.getElementById('read-progress-bar');
+    const progText = document.getElementById('read-progress-text');
+    if (readCount > 0) {
+      progBar.style.display = 'block';
+      progBar.querySelector('.prog-fill').style.width = progressPct + '%';
+      progText.textContent = `${readCount}/${totalCount} LIDOS (${progressPct}%)`;
+    } else {
+      progBar.style.display = 'none';
+      progText.textContent = '';
+    }
     list.innerHTML = data.chapters.map(c => `
       <div class="chapter-item ${read[c.id]?'read':''}"
            onclick="openChapter('${c.id}','${c.chapter}','${c.source||currentManga.source}')">
@@ -1606,9 +1707,7 @@ async function openChapter(id, num, source) {
   showPage('reader');
   scrollTo(0,0);
   if (currentManga) {
-    if (!state.readChapters[currentManga.id]) state.readChapters[currentManga.id]={};
-    state.readChapters[currentManga.id][id] = true;
-    state.save();
+    await dbSaveProgresso(currentManga, id, num, source||currentManga.source);
     dbSaveHistory(currentManga, id, num);
   }
   try {
@@ -1712,7 +1811,7 @@ async function toggleFav() {
     _favsCache = favs.filter(f=>f.manga_id!==currentManga.id);
   } else {
     await dbSaveFav(currentManga);
-    _favsCache = null; // força reload na próxima
+    _favsCache = null;
   }
   updateFavBtn();
 }
@@ -1724,7 +1823,7 @@ async function updateFavBtn() {
   btn.classList.toggle('saved', !!isFav);
 }
 async function renderFavorites() {
-  _favsCache = null; // sempre atualiza ao abrir a aba
+  _favsCache = null;
   const grid = document.getElementById('favorites-grid');
   grid.innerHTML = '<div class="loader">CARREGANDO</div>';
   const dbFavs = await _getFavs();
@@ -1758,17 +1857,75 @@ async function renderHistory() {
   }).join('');
 }
 
+// ── NOTIFICAÇÕES DE NOVOS CAPÍTULOS ──────────────────────────────────────────
+async function checkNewChapters() {
+  const favs = await _getFavs();
+  if (!favs.length) return;
+  const seen = await _getNotifSeen();
+  const news = [];
+  await Promise.allSettled(favs.map(async fav => {
+    try {
+      const mid = fav.manga_id;
+      const src = fav.manga_source||'mangadex';
+      const slug = fav.manga_data?.slug||'';
+      const ctrl = new AbortController();
+      setTimeout(() => ctrl.abort(), 8000);
+      const r = await fetch(`${API}/chapters?id=${mid}&lang=pt-br&source=${src}&slug=${slug}`,{signal:ctrl.signal});
+      const d = await r.json();
+      const chapters = d.chapters||[];
+      if (!chapters.length) return;
+      const latest = chapters[chapters.length-1];
+      const latestNum = latest.chapter;
+      const prevNum = seen[mid];
+      if (prevNum !== undefined && latestNum !== prevNum) {
+        news.push({ title: fav.manga_title, chapter: latestNum,
+          manga: fav.manga_data||{id:mid,title:fav.manga_title,cover:fav.manga_cover,source:src} });
+      }
+      seen[mid] = latestNum;
+    } catch {}
+  }));
+  // Salva seen atualizado no Supabase em background
+  fetch(`${API}/notif/salvar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ seen })
+  }).catch(() => {});
+  if (news.length) showNotifToast(news);
+}
+
+function showNotifToast(items) {
+  let toast = document.getElementById('notif-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'notif-toast';
+    toast.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:320px`;
+    document.body.appendChild(toast);
+  }
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.style.cssText = `background:var(--surface2);border:1px solid var(--cyan);border-radius:6px;padding:0.8rem 1rem;
+      font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;box-shadow:0 0 20px rgba(0,245,255,0.15);
+      animation:slideIn 0.3s ease;display:flex;flex-direction:column;gap:0.3rem`;
+    el.innerHTML = `
+      <span style="color:var(--cyan);letter-spacing:1px">🔔 NOVO CAPÍTULO</span>
+      <span style="color:var(--text);font-size:0.75rem;font-family:'Rajdhani',sans-serif;font-weight:600">${item.title}</span>
+      <span style="color:var(--muted)">CAP. ${item.chapter} disponível</span>`;
+    el.onclick = () => { openManga(item.manga); el.remove(); };
+    toast.appendChild(el);
+    setTimeout(() => el.remove(), 8000);
+  });
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 (function restorePageFromHash() {
   const hash = location.hash.replace('#','');
   const valid = ['home','explore','favorites','history','results'];
-  if (hash && valid.includes(hash)) {
-    showPage(hash);
-  } else {
-    showPage('home');
-  }
+  if (hash && valid.includes(hash)) showPage(hash);
+  else showPage('home');
 })();
 loadHomeData();
+// Checa novos capítulos 5s após carregar (para não atrasar o início)
+setTimeout(checkNewChapters, 5000);
 </script>
 </body>
 </html>
