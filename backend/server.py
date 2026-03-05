@@ -14,7 +14,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 PORT = int(os.environ.get("PORT", 8765))
-HEADERS = {"User-Agent": "MangaNexus/2.0", "Accept": "application/json"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36", "Accept": "application/json"}
 
 # ─── CACHE EM MEMÓRIA ─────────────────────────────────────────────────────────
 
@@ -484,7 +484,7 @@ def get_recent_releases(lang="pt-br", limit=20):
         cache.set(ck, releases, 900)
         return releases
     except Exception as e:
-        print(f"Erro releases: {e}"); return []
+        print(f"Erro releases: {e}"); import traceback; traceback.print_exc(); return []
 
 # ─── POPULARES ───────────────────────────────────────────────────────────────
 
@@ -615,7 +615,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not img_url or not img_url.startswith("https://"):
                     self.send_response(400); self.end_headers(); return
                 try:
-                    req = urllib.request.Request(img_url,headers={"User-Agent":"MangaNexus/2.0","Referer":"https://mangadex.org"})
+                    req = urllib.request.Request(img_url,headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36","Referer":"https://mangadex.org"})
                     with urllib.request.urlopen(req,timeout=15) as r:
                         img_data = r.read(); ct = r.headers.get("Content-Type","image/jpeg")
                     self.send_response(200)
