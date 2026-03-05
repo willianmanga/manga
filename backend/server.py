@@ -14,7 +14,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 PORT = int(os.environ.get("PORT", 8765))
-HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36", "Accept": "application/json"}
+HEADERS = {"User-Agent": "MangaNexus/2.0", "Accept": "application/json"}
 
 # ─── CACHE EM MEMÓRIA ─────────────────────────────────────────────────────────
 
@@ -381,19 +381,19 @@ def priority_search(q, lang, tags=None):
         fut_mdex    = executor.submit(mdex_search, q, lang, tags)
         fut_comick  = executor.submit(comick_search, q, lang, tags)
 
-        try: mzord_result  = fut_mzord.result(timeout=8)
+        try: mzord_result  = fut_mzord.result(timeout=10)
         except Exception as e: print(f"MangaZord timeout/erro: {e}")
 
-        try: mdex_result   = fut_mdex.result(timeout=8)
+        try: mdex_result   = fut_mdex.result(timeout=10)
         except Exception as e: print(f"MangaDex timeout/erro: {e}")
 
-        try: comick_result = fut_comick.result(timeout=8)
+        try: comick_result = fut_comick.result(timeout=10)
         except Exception as e: print(f"ComicK timeout/erro: {e}")
 
     # MangaZord tem prioridade total — se encontrou algo, retorna só ele
     if mzord_result:
         print(f"Busca '{q}': usando MangaZord ({len(mzord_result)} resultados)")
-        return mzord_result[:15]
+        return mzord_result
 
     # MangaZord vazio → combina MangaDex + ComicK (deduplicando por título)
     print(f"Busca '{q}': MangaZord vazio, usando MangaDex+ComicK")
@@ -403,8 +403,6 @@ def priority_search(q, lang, tags=None):
         key = r["title"].lower().strip()[:30]
         if key not in seen:
             seen.add(key); unique.append(r)
-            if len(unique) >= 15:
-                break
     return unique
 
 # ─── JIKAN ───────────────────────────────────────────────────────────────────
@@ -416,14 +414,13 @@ def jikan_score(title):
     c = cache.get(ck)
     if c is not None: return c
     try:
-        time.sleep(0.2)
+        time.sleep(0.4)
         data = fetch(f"{JIKAN}/manga?q={urllib.parse.quote(title)}&limit=1")
         items = data.get("data",[])
         if items:
             score = items[0].get("score")
-            if score:
-                cache.set(ck, score, 86400)
-                return score
+            cache.set(ck, score, 86400)
+            return score
     except: pass
     return None
 
@@ -484,7 +481,7 @@ def get_recent_releases(lang="pt-br", limit=20):
         cache.set(ck, releases, 900)
         return releases
     except Exception as e:
-        print(f"Erro releases: {e}"); import traceback; traceback.print_exc(); return []
+        print(f"Erro releases: {e}"); return []
 
 # ─── POPULARES ───────────────────────────────────────────────────────────────
 
@@ -598,8 +595,7 @@ class Handler(BaseHTTPRequestHandler):
                 if source == "comick": chs, total = comick_chapters(mid, slug, lang)
                 elif source == "mangazord":
                     chs, total = mzord_chapters(mid, lang)
-                    # NÃO fallback para MangaDex aqui: o ID do Mangazord é incompatível com MangaDex
-                    # O fallback de fonte deve ser feito pelo frontend com busca pelo título
+                    if not chs: chs, total = mdex_chapters(mid, lang)
                 else: chs, total = mdex_chapters(mid, lang)
                 self.send_json({"chapters":chs,"total":total})
 
@@ -615,7 +611,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not img_url or not img_url.startswith("https://"):
                     self.send_response(400); self.end_headers(); return
                 try:
-                    req = urllib.request.Request(img_url,headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36","Referer":"https://mangadex.org"})
+                    req = urllib.request.Request(img_url,headers={"User-Agent":"MangaNexus/2.0","Referer":"https://mangadex.org"})
                     with urllib.request.urlopen(req,timeout=15) as r:
                         img_data = r.read(); ct = r.headers.get("Content-Type","image/jpeg")
                     self.send_response(200)
