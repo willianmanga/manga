@@ -65,24 +65,20 @@ body {
   overflow-x: hidden;
 }
 
-/* ── ANIME WATERMARK BACKGROUND ─────────────────────────────────── */
 .anime-bg {
   position: fixed; inset: 0; z-index: 0;
   pointer-events: none; overflow: hidden;
 }
-
 .anime-bg svg {
   position: absolute;
   opacity: 0.028;
   filter: blur(0.5px);
 }
-
 .anime-bg .wm1 { width: 420px; top: -40px; right: -60px; transform: rotate(8deg); opacity: 0.032; }
 .anime-bg .wm2 { width: 380px; bottom: 10%; left: -80px; transform: rotate(-6deg) scaleX(-1); opacity: 0.025; }
 .anime-bg .wm3 { width: 300px; top: 35%; right: 15%; transform: rotate(3deg); opacity: 0.020; }
 .anime-bg .wm4 { width: 260px; bottom: 5%; right: 5%; transform: rotate(-10deg); opacity: 0.022; }
 
-/* Grid scanlines overlay */
 body::before {
   content: '';
   position: fixed; inset: 0; z-index: 0;
@@ -91,8 +87,6 @@ body::before {
     repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,245,255,0.006) 60px, rgba(0,245,255,0.006) 61px);
   pointer-events: none;
 }
-
-/* Ambient glow blobs */
 body::after {
   content: '';
   position: fixed; inset: 0; z-index: 0;
@@ -103,7 +97,6 @@ body::after {
   pointer-events: none;
 }
 
-/* ── HEADER ──────────────────────────────────────────────────────── */
 header {
   position: sticky; top: 0; z-index: 200;
   background: rgba(5,5,8,0.92);
@@ -113,7 +106,6 @@ header {
   height: 64px;
   display: flex; align-items: center; gap: 1.5rem;
 }
-
 header::after {
   content: '';
   position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
@@ -122,820 +114,205 @@ header::after {
 }
 
 .logo {
-  font-family: 'Orbitron', monospace;
-  font-weight: 900;
-  font-size: 1.4rem;
-  letter-spacing: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-  position: relative;
+  font-family: 'Orbitron', monospace; font-weight: 900; font-size: 1.4rem;
+  letter-spacing: 4px; cursor: pointer; white-space: nowrap; position: relative;
 }
-
-.logo-manga {
-  color: var(--cyan);
-  text-shadow: 0 0 20px rgba(0,245,255,0.6), 0 0 40px rgba(0,245,255,0.2);
-}
-
-.logo-nexus {
-  color: var(--pink);
-  text-shadow: 0 0 20px rgba(255,0,110,0.6), 0 0 40px rgba(255,0,110,0.2);
-}
-
-.logo-tag {
-  display: block;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 3px;
-  color: var(--muted);
-  margin-top: 1px;
-}
+.logo-manga { color: var(--cyan); text-shadow: 0 0 20px rgba(0,245,255,0.6), 0 0 40px rgba(0,245,255,0.2); }
+.logo-nexus { color: var(--pink); text-shadow: 0 0 20px rgba(255,0,110,0.6), 0 0 40px rgba(255,0,110,0.2); }
+.logo-tag { display: block; font-family: 'Share Tech Mono', monospace; font-size: 0.5rem; letter-spacing: 3px; color: var(--muted); margin-top: 1px; }
 
 .search-bar {
   display: flex; flex: 1; max-width: 560px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  overflow: hidden;
+  border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
-
-.search-bar:focus-within {
-  border-color: var(--cyan);
-  box-shadow: 0 0 0 1px var(--cyan), 0 0 20px rgba(0,245,255,0.1);
-}
-
+.search-bar:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan), 0 0 20px rgba(0,245,255,0.1); }
 .search-bar input {
-  flex: 1;
-  background: var(--surface);
-  border: none;
-  color: var(--text);
-  padding: 0 1rem;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  outline: none;
-  letter-spacing: 0.5px;
+  flex: 1; background: var(--surface); border: none; color: var(--text);
+  padding: 0 1rem; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem;
+  font-weight: 600; outline: none; letter-spacing: 0.5px;
 }
-
 .search-bar input::placeholder { color: var(--muted); }
-
 .search-bar select {
-  background: var(--surface2);
-  border: none;
-  border-left: 1px solid var(--border);
-  color: var(--muted);
-  padding: 0 0.6rem;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.75rem;
-  outline: none; cursor: pointer;
+  background: var(--surface2); border: none; border-left: 1px solid var(--border);
+  color: var(--muted); padding: 0 0.6rem; font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem; outline: none; cursor: pointer;
 }
-
 .search-bar button {
-  background: linear-gradient(135deg, var(--cyan), var(--purple));
-  border: none;
-  color: #000;
-  padding: 0 1.4rem;
-  font-family: 'Orbitron', monospace;
-  font-weight: 700;
-  font-size: 0.7rem;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: opacity 0.2s;
+  background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; color: #000;
+  padding: 0 1.4rem; font-family: 'Orbitron', monospace; font-weight: 700;
+  font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; transition: opacity 0.2s;
 }
-
 .search-bar button:hover { opacity: 0.85; }
 
 .nav-btns { display: flex; gap: 0.4rem; margin-left: auto; }
-
 .nav-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 0.4rem 0.9rem;
-  font-family: 'Orbitron', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 1px;
-  cursor: pointer;
-  border-radius: 3px;
-  transition: all 0.2s;
-  white-space: nowrap;
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  padding: 0.4rem 0.9rem; font-family: 'Orbitron', monospace; font-size: 0.62rem;
+  letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all 0.2s; white-space: nowrap;
 }
+.nav-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 10px rgba(0,245,255,0.15); }
 
-.nav-btn:hover {
-  border-color: var(--cyan);
-  color: var(--cyan);
-  box-shadow: 0 0 10px rgba(0,245,255,0.15);
-}
-
-/* ── PAGE WRAPPER ────────────────────────────────────────────────── */
 .page { display: none; padding: 2rem; max-width: 1440px; margin: 0 auto; position: relative; z-index: 1; }
 .page.active { display: block; }
 
-/* ── SECTION TITLE ───────────────────────────────────────────────── */
 .section-title {
-  font-family: 'Orbitron', monospace;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 4px;
-  color: var(--muted);
-  margin-bottom: 1.5rem;
-  display: flex; align-items: center; gap: 1rem;
-  text-transform: uppercase;
+  font-family: 'Orbitron', monospace; font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 4px; color: var(--muted); margin-bottom: 1.5rem;
+  display: flex; align-items: center; gap: 1rem; text-transform: uppercase;
 }
-
 .section-title::before {
-  content: '';
-  display: inline-block; width: 3px; height: 1.2em;
-  background: linear-gradient(180deg, var(--cyan), var(--pink));
-  border-radius: 2px;
-  box-shadow: 0 0 8px var(--cyan);
+  content: ''; display: inline-block; width: 3px; height: 1.2em;
+  background: linear-gradient(180deg, var(--cyan), var(--pink)); border-radius: 2px; box-shadow: 0 0 8px var(--cyan);
 }
+.section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
 
-.section-title::after {
-  content: '';
-  flex: 1; height: 1px;
-  background: linear-gradient(90deg, var(--border), transparent);
-}
-
-/* ── HOME HERO ───────────────────────────────────────────────────── */
-.home-hero {
-  text-align: center;
-  padding: 3.5rem 0 2.5rem;
-  position: relative;
-}
-
-.hero-eyebrow {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 6px;
-  color: var(--cyan);
-  text-shadow: 0 0 10px rgba(0,245,255,0.4);
-  margin-bottom: 1rem;
-  opacity: 0.8;
-}
-
-.hero-title {
-  font-family: 'Orbitron', monospace;
-  font-size: clamp(2.8rem, 8vw, 6.5rem);
-  font-weight: 900;
-  letter-spacing: 4px;
-  line-height: 1;
-  margin-bottom: 0.3rem;
-}
-
-.hero-title .line1 {
-  display: block;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(0,245,255,0.5);
-  text-stroke: 1px rgba(0,245,255,0.5);
-  letter-spacing: 8px;
-}
-
-.hero-title .line2 {
-  display: block;
-  background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 50%, var(--pink) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 30px rgba(0,245,255,0.3));
-}
-
-.hero-sub {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--muted);
-  letter-spacing: 2px;
-  margin: 1.2rem auto 2.5rem;
-  max-width: 420px;
-  line-height: 1.8;
-}
+.home-hero { text-align: center; padding: 3.5rem 0 2.5rem; position: relative; }
+.hero-eyebrow { font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; letter-spacing: 6px; color: var(--cyan); text-shadow: 0 0 10px rgba(0,245,255,0.4); margin-bottom: 1rem; opacity: 0.8; }
+.hero-title { font-family: 'Orbitron', monospace; font-size: clamp(2.8rem, 8vw, 6.5rem); font-weight: 900; letter-spacing: 4px; line-height: 1; margin-bottom: 0.3rem; }
+.hero-title .line1 { display: block; color: transparent; -webkit-text-stroke: 1px rgba(0,245,255,0.5); letter-spacing: 8px; }
+.hero-title .line2 { display: block; background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 50%, var(--pink) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 30px rgba(0,245,255,0.3)); }
+.hero-sub { font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; color: var(--muted); letter-spacing: 2px; margin: 1.2rem auto 2.5rem; max-width: 420px; line-height: 1.8; }
 
 .source-badges { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 2.5rem; flex-wrap: wrap; }
-
-.sbadge {
-  padding: 0.3rem 0.9rem;
-  border-radius: 2px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 2px;
-  border: 1px solid;
-}
-
+.sbadge { padding: 0.3rem 0.9rem; border-radius: 2px; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 2px; border: 1px solid; }
 .sbadge-c { border-color: rgba(0,245,255,0.4); color: var(--cyan); background: rgba(0,245,255,0.05); }
 .sbadge-p { border-color: rgba(255,0,110,0.4); color: var(--pink); background: rgba(255,0,110,0.05); }
 .sbadge-g { border-color: rgba(255,215,0,0.4); color: var(--gold); background: rgba(255,215,0,0.05); }
 
-.big-search {
-  display: flex; max-width: 600px; margin: 0 auto;
-  border: 1px solid var(--cyan);
-  border-radius: 4px; overflow: hidden;
-  box-shadow: 0 0 30px rgba(0,245,255,0.1), inset 0 0 30px rgba(0,245,255,0.02);
-}
-
-.big-search input {
-  flex: 1;
-  background: rgba(0,245,255,0.03);
-  border: none;
-  color: var(--text);
-  padding: 1rem 1.4rem;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 600;
-  outline: none;
-  letter-spacing: 0.5px;
-}
-
+.big-search { display: flex; max-width: 600px; margin: 0 auto; border: 1px solid var(--cyan); border-radius: 4px; overflow: hidden; box-shadow: 0 0 30px rgba(0,245,255,0.1), inset 0 0 30px rgba(0,245,255,0.02); }
+.big-search input { flex: 1; background: rgba(0,245,255,0.03); border: none; color: var(--text); padding: 1rem 1.4rem; font-family: 'Rajdhani', sans-serif; font-size: 1.05rem; font-weight: 600; outline: none; letter-spacing: 0.5px; }
 .big-search input::placeholder { color: var(--muted); }
+.big-search button { background: var(--cyan); border: none; color: #000; padding: 1rem 2rem; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.72rem; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
+.big-search button:hover { background: white; box-shadow: 0 0 20px var(--cyan); }
 
-.big-search button {
-  background: var(--cyan);
-  border: none; color: #000;
-  padding: 1rem 2rem;
-  font-family: 'Orbitron', monospace;
-  font-weight: 700;
-  font-size: 0.72rem;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.big-search button:hover {
-  background: white;
-  box-shadow: 0 0 20px var(--cyan);
-}
-
-/* ── GENRE PILLS ─────────────────────────────────────────────────── */
 .genre-section { margin: 1.8rem auto 0; max-width: 700px; }
-
-.genre-label {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 3px;
-  color: var(--muted);
-  margin-bottom: 0.8rem;
-}
-
+.genre-label { font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; letter-spacing: 3px; color: var(--muted); margin-bottom: 0.8rem; }
 .genre-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-
-.genre-pill {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 0.25rem 0.75rem;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 1px;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: all 0.15s;
-  user-select: none;
-}
-
+.genre-pill { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.25rem 0.75rem; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.15s; user-select: none; }
 .genre-pill:hover { border-color: var(--cyan); color: var(--cyan); }
 .genre-pill.active { border-color: var(--pink); color: var(--pink); background: rgba(255,0,110,0.08); box-shadow: 0 0 8px rgba(255,0,110,0.2); }
 
 .filter-actions { display: flex; gap: 0.6rem; margin-top: 0.9rem; align-items: center; }
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--pink), var(--purple));
-  border: none; color: white;
-  padding: 0.5rem 1.3rem;
-  font-family: 'Orbitron', monospace;
-  font-weight: 700; font-size: 0.62rem; letter-spacing: 2px;
-  cursor: pointer; border-radius: 3px;
-  transition: opacity 0.2s;
-}
+.btn-primary { background: linear-gradient(135deg, var(--pink), var(--purple)); border: none; color: white; padding: 0.5rem 1.3rem; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.62rem; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: opacity 0.2s; }
 .btn-primary:hover { opacity: 0.85; }
-
-.btn-ghost {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 0.5rem 1rem;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.65rem; letter-spacing: 1px;
-  cursor: pointer; border-radius: 3px;
-  transition: all 0.2s;
-}
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 1rem; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
 .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
 
-/* ── HOME SECTIONS ───────────────────────────────────────────────── */
 .home-section { margin-top: 3rem; }
-
-.h-scroll {
-  display: flex; gap: 1rem;
-  overflow-x: auto; padding-bottom: 0.8rem;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
+.h-scroll { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.8rem; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 .h-scroll::-webkit-scrollbar { height: 3px; }
 .h-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-/* Popular card */
-.popular-card {
-  cursor: pointer;
-  flex: 0 0 145px; width: 145px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px; overflow: hidden;
-  position: relative;
-  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-}
-
-.popular-card:hover {
-  border-color: var(--cyan);
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0,245,255,0.12), 0 0 0 1px rgba(0,245,255,0.1);
-}
-
-.popular-card::before {
-  content: '';
-  position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(to top, rgba(0,245,255,0.08) 0%, transparent 40%);
-  opacity: 0; transition: opacity 0.2s;
-}
+.popular-card { cursor: pointer; flex: 0 0 145px; width: 145px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; position: relative; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+.popular-card:hover { border-color: var(--cyan); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,245,255,0.12), 0 0 0 1px rgba(0,245,255,0.1); }
+.popular-card::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(0,245,255,0.08) 0%, transparent 40%); opacity: 0; transition: opacity 0.2s; }
 .popular-card:hover::before { opacity: 1; }
+.popular-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: var(--surface2); }
+.popular-card-info { padding: 0.5rem 0.6rem; position: relative; z-index: 2; }
+.popular-card-title { font-size: 0.75rem; font-weight: 700; line-height: 1.3; letter-spacing: 0.3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-.popular-card img {
-  width: 100%; aspect-ratio: 2/3;
-  object-fit: cover; display: block;
-  background: var(--surface2);
-}
+.release-card { cursor: pointer; flex: 0 0 240px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; display: flex; position: relative; transition: all 0.2s; }
+.release-card:hover { border-color: var(--pink); box-shadow: 0 0 20px rgba(255,0,110,0.1); transform: translateY(-3px); }
+.release-card img { width: 65px; min-width: 65px; object-fit: cover; background: var(--surface2); }
+.release-card-info { padding: 0.7rem 0.75rem; flex: 1; min-width: 0; }
+.release-card-manga { font-size: 0.8rem; font-weight: 700; line-height: 1.3; margin-bottom: 0.35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.release-card-ch { font-family: 'Orbitron', monospace; font-size: 0.65rem; color: var(--pink); letter-spacing: 1px; }
+.release-card-lang { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; text-transform: uppercase; }
 
-.popular-card-info {
-  padding: 0.5rem 0.6rem;
-  position: relative; z-index: 2;
-}
-
-.popular-card-title {
-  font-size: 0.75rem; font-weight: 700;
-  line-height: 1.3; letter-spacing: 0.3px;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-
-/* Release card */
-.release-card {
-  cursor: pointer;
-  flex: 0 0 240px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px; overflow: hidden;
-  display: flex; position: relative;
-  transition: all 0.2s;
-}
-
-.release-card:hover {
-  border-color: var(--pink);
-  box-shadow: 0 0 20px rgba(255,0,110,0.1);
-  transform: translateY(-3px);
-}
-
-.release-card img {
-  width: 65px; min-width: 65px;
-  object-fit: cover; background: var(--surface2);
-}
-
-.release-card-info {
-  padding: 0.7rem 0.75rem; flex: 1; min-width: 0;
-}
-
-.release-card-manga {
-  font-size: 0.8rem; font-weight: 700; line-height: 1.3;
-  margin-bottom: 0.35rem;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-
-.release-card-ch {
-  font-family: 'Orbitron', monospace;
-  font-size: 0.65rem; color: var(--pink); letter-spacing: 1px;
-}
-
-.release-card-lang {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem;
-  text-transform: uppercase;
-}
-
-/* ── SOURCE TABS / FILTER TABS ───────────────────────────────────── */
 .tabs-row { display: flex; gap: 0.4rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
-
-.tab-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 0.4rem 1rem;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.65rem; letter-spacing: 1px;
-  cursor: pointer; border-radius: 3px; transition: all 0.15s;
-}
-
+.tab-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 1rem; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all 0.15s; }
 .tab-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 .tab-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0,245,255,0.06); box-shadow: 0 0 12px rgba(0,245,255,0.1); }
 
-/* ── MAIN GRID ───────────────────────────────────────────────────── */
-.manga-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(155px,1fr));
-  gap: 1rem;
-}
-
-.manga-card {
-  cursor: pointer;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px; overflow: hidden;
-  position: relative;
-  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-}
-
-.manga-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--cyan);
-  box-shadow: 0 10px 25px rgba(0,245,255,0.1), 0 0 0 1px rgba(0,245,255,0.08);
-}
-
-.manga-card img {
-  width: 100%; aspect-ratio: 2/3;
-  object-fit: cover; display: block;
-  background: var(--surface2);
-}
-
-.card-source {
-  position: absolute; top: 6px; left: 6px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.58rem; font-weight: 700;
-  padding: 0.15rem 0.45rem; border-radius: 2px;
-  backdrop-filter: blur(8px); letter-spacing: 1px;
-  border: 1px solid;
-}
-
+.manga-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px,1fr)); gap: 1rem; }
+.manga-card { cursor: pointer; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; position: relative; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+.manga-card:hover { transform: translateY(-5px); border-color: var(--cyan); box-shadow: 0 10px 25px rgba(0,245,255,0.1), 0 0 0 1px rgba(0,245,255,0.08); }
+.manga-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: var(--surface2); }
+.card-source { position: absolute; top: 6px; left: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 2px; backdrop-filter: blur(8px); letter-spacing: 1px; border: 1px solid; }
 .card-source.mangadex { color: var(--cyan); border-color: rgba(0,245,255,0.4); background: rgba(0,245,255,0.1); }
 .card-source.comick { color: #80b3ff; border-color: rgba(128,179,255,0.4); background: rgba(128,179,255,0.1); }
 .card-source.mangazord { color: #00ff9d; border-color: rgba(0,255,157,0.4); background: rgba(0,255,157,0.1); }
-
-.card-score {
-  position: absolute; top: 6px; right: 6px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.65rem; color: var(--gold);
-  background: rgba(0,0,0,0.75);
-  padding: 0.15rem 0.5rem; border-radius: 2px;
-  border: 1px solid rgba(255,215,0,0.3);
-  backdrop-filter: blur(8px);
-}
-
-.card-tipo {
-  position: absolute; bottom: 6px; right: 6px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.55rem; font-weight: 700;
-  padding: 0.12rem 0.4rem; border-radius: 2px;
-  backdrop-filter: blur(8px); letter-spacing: 1px;
-  background: rgba(0,0,0,0.8);
-}
-
-.card-tipo.Manga    { color: #ff9999; }
-.card-tipo.Manhwa   { color: #99ffcc; }
-.card-tipo.Manhua   { color: #99d6ff; }
-
+.card-score { position: absolute; top: 6px; right: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--gold); background: rgba(0,0,0,0.75); padding: 0.15rem 0.5rem; border-radius: 2px; border: 1px solid rgba(255,215,0,0.3); backdrop-filter: blur(8px); }
+.card-tipo { position: absolute; bottom: 6px; right: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; font-weight: 700; padding: 0.12rem 0.4rem; border-radius: 2px; backdrop-filter: blur(8px); letter-spacing: 1px; background: rgba(0,0,0,0.8); }
+.card-tipo.Manga  { color: #ff9999; }
+.card-tipo.Manhwa { color: #99ffcc; }
+.card-tipo.Manhua { color: #99d6ff; }
 .manga-card-info { padding: 0.65rem; }
-
-.manga-card-title {
-  font-size: 0.8rem; font-weight: 700; line-height: 1.35; letter-spacing: 0.2px;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-
-.manga-card-status {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; letter-spacing: 1px;
-}
-
+.manga-card-title { font-size: 0.8rem; font-weight: 700; line-height: 1.35; letter-spacing: 0.2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.manga-card-status { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; letter-spacing: 1px; }
 .manga-card-tags { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-top: 0.4rem; }
+.tag { font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; padding: 0.1rem 0.4rem; border-radius: 2px; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); letter-spacing: 0.5px; }
 
-.tag {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.55rem; padding: 0.1rem 0.4rem; border-radius: 2px;
-  background: var(--surface2); color: var(--muted); border: 1px solid var(--border);
-  letter-spacing: 0.5px;
-}
-
-/* ── DETAIL PAGE ─────────────────────────────────────────────────── */
-.detail-header {
-  display: flex; gap: 2.5rem; margin-bottom: 2.5rem; align-items: flex-start;
-}
-
-.detail-cover-wrap {
-  width: 200px; min-width: 200px; position: relative;
-}
-
-.detail-cover {
-  width: 100%; aspect-ratio: 2/3;
-  object-fit: cover; border-radius: 4px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  display: block;
-}
-
-.detail-cover-wrap::after {
-  content: '';
-  position: absolute; inset: -1px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, rgba(0,245,255,0.3), transparent 40%, rgba(255,0,110,0.2) 100%);
-  pointer-events: none;
-  opacity: 0.6;
-}
-
+.detail-header { display: flex; gap: 2.5rem; margin-bottom: 2.5rem; align-items: flex-start; }
+.detail-cover-wrap { width: 200px; min-width: 200px; position: relative; }
+.detail-cover { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 4px; background: var(--surface2); border: 1px solid var(--border); display: block; }
+.detail-cover-wrap::after { content: ''; position: absolute; inset: -1px; border-radius: 4px; background: linear-gradient(135deg, rgba(0,245,255,0.3), transparent 40%, rgba(255,0,110,0.2) 100%); pointer-events: none; opacity: 0.6; }
 .detail-info { flex: 1; }
-
-.detail-title {
-  font-family: 'Orbitron', monospace;
-  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
-  font-weight: 900; letter-spacing: 2px; line-height: 1.15;
-  margin-bottom: 0.7rem;
-  background: linear-gradient(135deg, var(--text) 60%, var(--cyan));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-
-.detail-meta {
-  display: flex; gap: 0.5rem; align-items: center;
-  margin-bottom: 0.9rem; flex-wrap: wrap;
-}
-
-.detail-score {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.78rem; color: var(--gold);
-  border: 1px solid rgba(255,215,0,0.3);
-  padding: 0.2rem 0.6rem; border-radius: 2px;
-  background: rgba(255,215,0,0.06);
-}
-
-.detail-status {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.7rem; color: var(--muted); letter-spacing: 1px;
-}
-
-.detail-desc {
-  color: rgba(232,232,240,0.65); font-size: 0.9rem; line-height: 1.75;
-  margin-bottom: 1rem; max-height: 110px; overflow-y: auto;
-  font-weight: 400;
-}
-
+.detail-title { font-family: 'Orbitron', monospace; font-size: clamp(1.5rem, 3.5vw, 2.5rem); font-weight: 900; letter-spacing: 2px; line-height: 1.15; margin-bottom: 0.7rem; background: linear-gradient(135deg, var(--text) 60%, var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.detail-meta { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.9rem; flex-wrap: wrap; }
+.detail-score { font-family: 'Share Tech Mono', monospace; font-size: 0.78rem; color: var(--gold); border: 1px solid rgba(255,215,0,0.3); padding: 0.2rem 0.6rem; border-radius: 2px; background: rgba(255,215,0,0.06); }
+.detail-status { font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; color: var(--muted); letter-spacing: 1px; }
+.detail-desc { color: rgba(232,232,240,0.65); font-size: 0.9rem; line-height: 1.75; margin-bottom: 1rem; max-height: 110px; overflow-y: auto; font-weight: 400; }
 .detail-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 1.2rem; }
-
 .btn-row { display: flex; gap: 0.7rem; flex-wrap: wrap; }
-
-.btn-fav {
-  background: transparent;
-  border: 1px solid var(--pink); color: var(--pink);
-  padding: 0.55rem 1.3rem;
-  font-family: 'Orbitron', monospace; font-weight: 700;
-  font-size: 0.65rem; letter-spacing: 2px;
-  cursor: pointer; border-radius: 3px; transition: all 0.2s;
-}
-
-.btn-fav:hover, .btn-fav.saved {
-  background: var(--pink); color: white;
-  box-shadow: 0 0 20px rgba(255,0,110,0.3);
-}
-
-.btn-ext {
-  background: transparent;
-  border: 1px solid var(--border); color: var(--muted);
-  padding: 0.55rem 1.3rem;
-  font-family: 'Orbitron', monospace; font-weight: 700;
-  font-size: 0.65rem; letter-spacing: 2px;
-  cursor: pointer; border-radius: 3px; transition: all 0.2s;
-  text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
-}
-
+.btn-fav { background: transparent; border: 1px solid var(--pink); color: var(--pink); padding: 0.55rem 1.3rem; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.65rem; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
+.btn-fav:hover, .btn-fav.saved { background: var(--pink); color: white; box-shadow: 0 0 20px rgba(255,0,110,0.3); }
+.btn-ext { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.55rem 1.3rem; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.65rem; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
 .btn-ext:hover { border-color: var(--cyan); color: var(--cyan); }
 
-/* Chapter list */
-.lang-select {
-  background: var(--surface2);
-  border: 1px solid var(--border); color: var(--text);
-  padding: 0.5rem 0.9rem;
-  font-family: 'Share Tech Mono', monospace; font-size: 0.72rem;
-  border-radius: 3px; outline: none; cursor: pointer;
-  transition: border-color 0.2s;
-}
+.lang-select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 0.9rem; font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; border-radius: 3px; outline: none; cursor: pointer; transition: border-color 0.2s; }
 .lang-select:focus { border-color: var(--cyan); }
-
-.chapters-list {
-  display: flex; flex-direction: column; gap: 0.25rem;
-  max-height: 55vh; overflow-y: auto; padding-right: 0.3rem;
-}
-
-.chapter-item {
-  display: flex; align-items: center;
-  background: var(--surface); border: 1px solid var(--border);
-  padding: 0.6rem 1rem; border-radius: 3px;
-  cursor: pointer; transition: all 0.15s; color: inherit;
-  position: relative; overflow: hidden;
-}
-
-.chapter-item::before {
-  content: '';
-  position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
-  background: linear-gradient(180deg, var(--cyan), var(--purple));
-  opacity: 0; transition: opacity 0.15s;
-}
-
+.chapters-list { display: flex; flex-direction: column; gap: 0.25rem; max-height: 55vh; overflow-y: auto; padding-right: 0.3rem; }
+.chapter-item { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); padding: 0.6rem 1rem; border-radius: 3px; cursor: pointer; transition: all 0.15s; color: inherit; position: relative; overflow: hidden; }
+.chapter-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--cyan), var(--purple)); opacity: 0; transition: opacity 0.15s; }
 .chapter-item:hover { border-color: rgba(0,245,255,0.3); background: var(--surface2); }
 .chapter-item:hover::before { opacity: 1; }
 .chapter-item.read { opacity: 0.38; }
+.chapter-num { font-family: 'Orbitron', monospace; font-size: 0.75rem; color: var(--cyan); letter-spacing: 1px; min-width: 80px; font-weight: 700; }
+.chapter-title-text { font-size: 0.82rem; color: var(--muted); flex: 1; margin: 0 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chapter-lang { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); border: 1px solid var(--border); padding: 0.12rem 0.45rem; border-radius: 2px; letter-spacing: 1px; }
 
-.chapter-num {
-  font-family: 'Orbitron', monospace;
-  font-size: 0.75rem; color: var(--cyan); letter-spacing: 1px;
-  min-width: 80px; font-weight: 700;
-}
-
-.chapter-title-text {
-  font-size: 0.82rem; color: var(--muted); flex: 1;
-  margin: 0 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.chapter-lang {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.6rem; color: var(--muted);
-  border: 1px solid var(--border); padding: 0.12rem 0.45rem;
-  border-radius: 2px; letter-spacing: 1px;
-}
-
-/* ── READER ──────────────────────────────────────────────────────── */
 #reader-page { background: #000; min-height: 100vh; padding: 0; max-width: 100%; }
-
-.reader-nav {
-  position: sticky; top: 0; z-index: 50;
-  background: rgba(0,0,0,0.96);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 0.6rem;
-  padding: 0.7rem 1.5rem;
-  backdrop-filter: blur(20px);
-  flex-wrap: wrap;
-}
-
-.reader-nav::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-  opacity: 0.4;
-}
-
-.reader-nav button {
-  background: var(--surface);
-  border: 1px solid var(--border); color: var(--text);
-  padding: 0.42rem 0.85rem;
-  font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; letter-spacing: 1px;
-  cursor: pointer; border-radius: 3px; transition: all 0.2s;
-}
-
+.reader-nav { position: sticky; top: 0; z-index: 50; background: rgba(0,0,0,0.96); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1.5rem; backdrop-filter: blur(20px); flex-wrap: wrap; }
+.reader-nav::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--cyan), transparent); opacity: 0.4; }
+.reader-nav button { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.42rem 0.85rem; font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
 .reader-nav button:hover { border-color: var(--cyan); color: var(--cyan); }
 .reader-nav button:disabled { opacity: 0.25; cursor: not-allowed; }
+.reader-nav button.nav-chapter { background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(123,47,255,0.15)); border-color: var(--cyan); color: var(--cyan); font-weight: 700; box-shadow: 0 0 12px rgba(0,245,255,0.08); }
+.reader-nav button.nav-chapter:hover { background: var(--cyan); color: #000; box-shadow: 0 0 20px rgba(0,245,255,0.3); }
+.reader-nav button.nav-chapter:disabled { background: var(--surface); border-color: var(--border); color: var(--muted); box-shadow: none; }
+.reader-title { font-family: 'Orbitron', monospace; font-size: 0.75rem; letter-spacing: 2px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--cyan); opacity: 0.8; }
+.reader-progress { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--muted); white-space: nowrap; }
+.pages-container { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 1rem 0; }
+.reader-page-img { max-width: min(900px, 100vw); width: 100%; display: block; object-fit: contain; }
 
-.reader-nav button.nav-chapter {
-  background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(123,47,255,0.15));
-  border-color: var(--cyan); color: var(--cyan); font-weight: 700;
-  box-shadow: 0 0 12px rgba(0,245,255,0.08);
-}
-
-.reader-nav button.nav-chapter:hover {
-  background: var(--cyan); color: #000;
-  box-shadow: 0 0 20px rgba(0,245,255,0.3);
-}
-
-.reader-nav button.nav-chapter:disabled {
-  background: var(--surface); border-color: var(--border); color: var(--muted); box-shadow: none;
-}
-
-.reader-title {
-  font-family: 'Orbitron', monospace;
-  font-size: 0.75rem; letter-spacing: 2px; flex: 1;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: var(--cyan); opacity: 0.8;
-}
-
-.reader-progress {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.65rem; color: var(--muted); white-space: nowrap;
-}
-
-.pages-container {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 4px; padding: 1rem 0;
-}
-
-.reader-page-img {
-  max-width: min(900px, 100vw); width: 100%;
-  display: block; object-fit: contain;
-}
-
-/* END NAV */
-.reader-end-nav {
-  display: flex; flex-direction: column; align-items: center; gap: 1.2rem;
-  padding: 3rem 2rem;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-  text-align: center;
-  position: relative; overflow: hidden;
-}
-
-.reader-end-nav::before {
-  content: 'END';
-  position: absolute;
-  font-family: 'Orbitron', monospace;
-  font-size: 10rem; font-weight: 900;
-  color: rgba(0,245,255,0.015);
-  letter-spacing: 20px;
-  user-select: none; pointer-events: none;
-}
-
-.end-label {
-  font-family: 'Orbitron', monospace;
-  font-size: 1rem; letter-spacing: 6px; color: var(--cyan);
-  text-shadow: 0 0 20px rgba(0,245,255,0.4);
-}
-
+.reader-end-nav { display: flex; flex-direction: column; align-items: center; gap: 1.2rem; padding: 3rem 2rem; border-top: 1px solid var(--border); background: var(--surface); text-align: center; position: relative; overflow: hidden; }
+.reader-end-nav::before { content: 'END'; position: absolute; font-family: 'Orbitron', monospace; font-size: 10rem; font-weight: 900; color: rgba(0,245,255,0.015); letter-spacing: 20px; user-select: none; pointer-events: none; }
+.end-label { font-family: 'Orbitron', monospace; font-size: 1rem; letter-spacing: 6px; color: var(--cyan); text-shadow: 0 0 20px rgba(0,245,255,0.4); }
 .end-btn-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-
-.btn-end {
-  padding: 0.8rem 2rem;
-  font-family: 'Orbitron', monospace; font-weight: 700;
-  font-size: 0.7rem; letter-spacing: 2px;
-  border-radius: 3px; cursor: pointer; border: 1px solid; transition: all 0.2s;
-}
-
-.btn-end-prev {
-  background: transparent; border-color: var(--border); color: var(--muted);
-}
+.btn-end { padding: 0.8rem 2rem; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.7rem; letter-spacing: 2px; border-radius: 3px; cursor: pointer; border: 1px solid; transition: all 0.2s; }
+.btn-end-prev { background: transparent; border-color: var(--border); color: var(--muted); }
 .btn-end-prev:hover { border-color: var(--cyan); color: var(--cyan); }
-
-.btn-end-next {
-  background: linear-gradient(135deg, var(--cyan), var(--purple));
-  border-color: var(--cyan); color: #000;
-}
+.btn-end-next { background: linear-gradient(135deg, var(--cyan), var(--purple)); border-color: var(--cyan); color: #000; }
 .btn-end-next:hover { box-shadow: 0 0 25px rgba(0,245,255,0.4); opacity: 0.9; }
 .btn-end-next:disabled { background: var(--surface2); border-color: var(--border); color: var(--muted); box-shadow: none; cursor: not-allowed; }
-
-.btn-end-back {
-  background: transparent; border-color: transparent; color: var(--muted);
-  font-size: 0.65rem !important; padding: 0.5rem 1rem !important;
-  letter-spacing: 1px !important;
-}
+.btn-end-back { background: transparent; border-color: transparent; color: var(--muted); font-size: 0.65rem !important; padding: 0.5rem 1rem !important; letter-spacing: 1px !important; }
 .btn-end-back:hover { color: var(--text); border-color: var(--border); }
 
-/* ── MISC ────────────────────────────────────────────────────────── */
-.loader {
-  text-align: center; padding: 3rem;
-  color: var(--muted);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.75rem; letter-spacing: 3px;
-}
+.loader { text-align: center; padding: 3rem; color: var(--muted); font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; letter-spacing: 3px; }
+.loader::after { content: '...'; animation: dots 1.2s infinite; }
+@keyframes dots { 0%,20%{content:'.';} 40%,60%{content:'..';} 80%,100%{content:'...';} }
+.empty-msg { text-align: center; padding: 4rem; color: var(--muted); }
+.empty-msg span { display: block; font-family: 'Orbitron', monospace; font-size: 1.5rem; letter-spacing: 4px; color: var(--cyan); opacity: 0.3; margin-bottom: 0.5rem; }
+.lang-notice { margin-bottom: 1rem; padding: 0.6rem 1rem; background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.25); border-radius: 3px; font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; color: var(--gold); letter-spacing: 0.5px; }
 
-.loader::after {
-  content: '...'; animation: dots 1.2s infinite;
-}
-
-@keyframes dots {
-  0%,20%  { content: '.'; }
-  40%,60% { content: '..'; }
-  80%,100%{ content: '...'; }
-}
-
-.empty-msg {
-  text-align: center; padding: 4rem;
-  color: var(--muted);
-}
-
-.empty-msg span {
-  display: block;
-  font-family: 'Orbitron', monospace;
-  font-size: 1.5rem; letter-spacing: 4px;
-  color: var(--cyan); opacity: 0.3;
-  margin-bottom: 0.5rem;
-}
-
-.lang-notice {
-  margin-bottom: 1rem; padding: 0.6rem 1rem;
-  background: rgba(255,215,0,0.06);
-  border: 1px solid rgba(255,215,0,0.25);
-  border-radius: 3px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.72rem; color: var(--gold); letter-spacing: 0.5px;
-}
-
-/* SCROLLBAR */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
 
-/* ── EXPLORE ─────────────────────────────────────────────────────── */
-.load-more-btn {
-  display: block; margin: 2rem auto 0;
-  background: transparent;
-  border: 1px solid var(--border); color: var(--muted);
-  padding: 0.7rem 2rem;
-  font-family: 'Orbitron', monospace; font-size: 0.65rem; letter-spacing: 2px;
-  cursor: pointer; border-radius: 3px; transition: all 0.2s;
-}
+.load-more-btn { display: block; margin: 2rem auto 0; background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.7rem 2rem; font-family: 'Orbitron', monospace; font-size: 0.65rem; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
 .load-more-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 15px rgba(0,245,255,0.1); }
 
 @media (max-width: 640px) {
@@ -950,137 +327,77 @@ header::after {
 </head>
 <body>
 
-<!-- ANIME WATERMARK BACKGROUND -->
 <div class="anime-bg">
-  <!-- Silhueta 1: figura com espada (estilo shonen) -->
   <svg class="wm1" viewBox="0 0 300 500" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color:var(--cyan)">
-    <!-- Cabeça -->
     <ellipse cx="150" cy="60" rx="38" ry="45"/>
-    <!-- Cabelo espetado -->
-    <polygon points="112,30 95,0 125,25"/>
-    <polygon points="128,18 118,-10 140,20"/>
-    <polygon points="155,14 148,-12 165,18"/>
-    <polygon points="172,22 175,-5 188,25"/>
+    <polygon points="112,30 95,0 125,25"/><polygon points="128,18 118,-10 140,20"/>
+    <polygon points="155,14 148,-12 165,18"/><polygon points="172,22 175,-5 188,25"/>
     <polygon points="185,36 192,8 200,40"/>
-    <!-- Corpo -->
     <rect x="118" y="100" width="64" height="90" rx="8"/>
-    <!-- Braço esq com espada -->
     <rect x="68" y="105" width="22" height="80" rx="10" transform="rotate(-20,79,145)"/>
-    <!-- Espada -->
     <rect x="30" y="60" width="8" height="160" rx="4" transform="rotate(-20,34,140)"/>
     <rect x="18" y="108" width="32" height="8" rx="3" transform="rotate(-20,34,112)"/>
-    <!-- Braço dir -->
     <rect x="210" y="105" width="22" height="75" rx="10" transform="rotate(15,221,142)"/>
-    <!-- Pernas -->
     <rect x="122" y="186" width="26" height="110" rx="10" transform="rotate(-5,135,241)"/>
     <rect x="152" y="186" width="26" height="110" rx="10" transform="rotate(5,165,241)"/>
-    <!-- Capa/manto -->
     <path d="M110,110 Q70,200 80,310 Q120,280 150,295 Q180,280 220,310 Q230,200 190,110Z" opacity="0.5"/>
-    <!-- Detalhes facial -->
     <rect x="130" y="55" width="15" height="4" rx="2" fill="var(--bg)"/>
     <rect x="155" y="55" width="15" height="4" rx="2" fill="var(--bg)"/>
   </svg>
-
-  <!-- Silhueta 2: figura feminina (estilo shoujo/magical) -->
   <svg class="wm2" viewBox="0 0 280 480" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color:var(--pink)">
-    <!-- Cabeça -->
     <ellipse cx="140" cy="65" rx="35" ry="42"/>
-    <!-- Cabelo longo -->
     <path d="M108,50 Q70,120 75,280 Q100,270 108,260 Q105,140 120,100Z"/>
     <path d="M172,50 Q210,120 205,280 Q180,270 172,260 Q175,140 160,100Z"/>
     <path d="M120,100 Q140,130 160,100 Q155,200 140,230 Q125,200 120,100Z" opacity="0.6"/>
-    <!-- Corpo com vestido -->
     <rect x="118" y="104" width="44" height="70" rx="6"/>
-    <!-- Saia flared -->
     <path d="M110,170 Q80,220 85,290 Q140,270 140,270 Q140,270 195,290 Q200,220 170,170Z"/>
-    <!-- Braços -->
     <rect x="84" y="108" width="18" height="65" rx="9" transform="rotate(-15,93,140)"/>
     <rect x="178" y="108" width="18" height="65" rx="9" transform="rotate(15,187,140)"/>
-    <!-- Pernas -->
     <rect x="122" y="280" width="22" height="100" rx="10"/>
     <rect x="148" y="280" width="22" height="100" rx="10"/>
-    <!-- Laço no cabelo -->
     <ellipse cx="100" cy="50" rx="20" ry="12" transform="rotate(-30,100,50)"/>
     <ellipse cx="180" cy="50" rx="20" ry="12" transform="rotate(30,180,50)"/>
     <circle cx="140" cy="50" r="8"/>
-    <!-- Varinha mágica -->
     <line x1="210" y1="130" x2="255" y2="70" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
     <polygon points="255,55 265,75 245,75"/>
     <circle cx="255" cy="55" r="10" opacity="0.7"/>
-    <!-- Olhos -->
     <ellipse cx="128" cy="65" rx="8" ry="9" fill="var(--bg)"/>
     <ellipse cx="152" cy="65" rx="8" ry="9" fill="var(--bg)"/>
     <ellipse cx="128" cy="65" rx="4" ry="5" fill="currentColor"/>
     <ellipse cx="152" cy="65" rx="4" ry="5" fill="currentColor"/>
   </svg>
-
-  <!-- Silhueta 3: robô/mecha estilizado -->
   <svg class="wm3" viewBox="0 0 240 420" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color:var(--purple)">
-    <!-- Cabeça quadrada -->
-    <rect x="75" cy="20" x="75" y="20" width="90" height="80" rx="6"/>
-    <!-- Antenas -->
-    <rect x="100" y="0" width="6" height="25" rx="3"/>
-    <rect x="134" y="0" width="6" height="25" rx="3"/>
-    <circle cx="103" cy="0" r="6"/>
-    <circle cx="137" cy="0" r="6"/>
-    <!-- Visor -->
+    <rect x="75" y="20" width="90" height="80" rx="6"/>
+    <rect x="100" y="0" width="6" height="25" rx="3"/><rect x="134" y="0" width="6" height="25" rx="3"/>
+    <circle cx="103" cy="0" r="6"/><circle cx="137" cy="0" r="6"/>
     <rect x="82" y="38" width="76" height="30" rx="4" fill="var(--bg)" opacity="0.8"/>
     <rect x="86" y="42" width="32" height="22" rx="3" opacity="0.6"/>
     <rect x="122" y="42" width="32" height="22" rx="3" opacity="0.6"/>
-    <!-- Bocal -->
     <rect x="90" y="76" width="60" height="18" rx="3" fill="var(--bg)" opacity="0.6"/>
-    <!-- Torso -->
     <rect x="60" y="110" width="120" height="100" rx="8"/>
-    <!-- Cockpit -->
     <rect x="90" y="125" width="60" height="40" rx="6" fill="var(--bg)" opacity="0.5"/>
-    <!-- Ombros -->
-    <rect x="20" y="105" width="45" height="50" rx="10"/>
-    <rect x="175" y="105" width="45" height="50" rx="10"/>
-    <!-- Braços -->
-    <rect x="22" y="148" width="36" height="80" rx="8"/>
-    <rect x="182" y="148" width="36" height="80" rx="8"/>
-    <!-- Punhos -->
-    <rect x="18" y="224" width="42" height="40" rx="6"/>
-    <rect x="180" y="224" width="42" height="40" rx="6"/>
-    <!-- Pernas -->
-    <rect x="70" y="214" width="45" height="110" rx="8"/>
-    <rect x="125" y="214" width="45" height="110" rx="8"/>
-    <!-- Pés -->
-    <rect x="62" y="316" width="55" height="28" rx="6"/>
-    <rect x="123" y="316" width="55" height="28" rx="6"/>
-    <!-- Detalhes -->
-    <circle cx="95" cy="170" r="8" opacity="0.4"/>
-    <circle cx="145" cy="170" r="8" opacity="0.4"/>
+    <rect x="20" y="105" width="45" height="50" rx="10"/><rect x="175" y="105" width="45" height="50" rx="10"/>
+    <rect x="22" y="148" width="36" height="80" rx="8"/><rect x="182" y="148" width="36" height="80" rx="8"/>
+    <rect x="18" y="224" width="42" height="40" rx="6"/><rect x="180" y="224" width="42" height="40" rx="6"/>
+    <rect x="70" y="214" width="45" height="110" rx="8"/><rect x="125" y="214" width="45" height="110" rx="8"/>
+    <rect x="62" y="316" width="55" height="28" rx="6"/><rect x="123" y="316" width="55" height="28" rx="6"/>
+    <circle cx="95" cy="170" r="8" opacity="0.4"/><circle cx="145" cy="170" r="8" opacity="0.4"/>
     <rect x="90" y="185" width="60" height="5" rx="2" opacity="0.4"/>
     <rect x="90" y="195" width="40" height="5" rx="2" opacity="0.4"/>
   </svg>
-
-  <!-- Silhueta 4: ninja em pose de luta -->
   <svg class="wm4" viewBox="0 0 220 420" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color:var(--cyan)">
-    <!-- Cabeça -->
     <circle cx="110" cy="52" r="38"/>
-    <!-- Bandana -->
     <rect x="76" y="38" width="68" height="20" rx="4" fill="var(--bg)" opacity="0.5"/>
-    <!-- Olhos mascarados -->
-    <rect x="82" y="44" width="20" height="8" rx="4"/>
-    <rect x="118" y="44" width="20" height="8" rx="4"/>
-    <!-- Corpo -->
+    <rect x="82" y="44" width="20" height="8" rx="4"/><rect x="118" y="44" width="20" height="8" rx="4"/>
     <rect x="84" y="86" width="52" height="85" rx="6"/>
-    <!-- Faixa/cinto -->
     <rect x="78" y="150" width="64" height="14" rx="4" opacity="0.7"/>
-    <!-- Braço esq estendido atacando -->
     <rect x="20" y="88" width="68" height="20" rx="10" transform="rotate(5,54,98)"/>
-    <!-- Braço dir puxado atrás -->
     <rect x="136" y="94" width="55" height="18" rx="9" transform="rotate(-20,163,103)"/>
-    <!-- Calça larga -->
     <path d="M84,165 Q60,200 55,280 Q90,275 100,270 Q110,260 110,260 Q110,260 120,270 Q130,275 165,280 Q160,200 136,165Z"/>
-    <!-- Pernas em stance -->
     <rect x="58" y="272" width="28" height="90" rx="10" transform="rotate(-8,72,317)"/>
     <rect x="134" y="272" width="28" height="90" rx="10" transform="rotate(8,148,317)"/>
-    <!-- Shurikens nas costas -->
     <polygon points="30,72 42,80 42,66" opacity="0.5"/>
     <polygon points="190,68 178,76 178,62" opacity="0.5"/>
-    <!-- Kunai na mão -->
     <rect x="8" y="90" width="16" height="50" rx="4" transform="rotate(10,16,115)"/>
   </svg>
 </div>
@@ -1141,14 +458,12 @@ header::after {
       </div>
     </div>
   </div>
-
   <div class="home-section">
     <div class="section-title">LANÇAMENTOS DE HOJE</div>
     <div class="h-scroll" id="releases-scroll">
       <div class="loader" style="padding:1rem 0">CARREGANDO DADOS</div>
     </div>
   </div>
-
   <div class="home-section" style="margin-bottom:2rem">
     <div class="section-title">MAIS POPULARES</div>
     <div class="h-scroll" id="popular-scroll">
@@ -1206,13 +521,11 @@ header::after {
     </select>
     <span id="chapter-count" style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--muted)"></span>
   </div>
-  <!-- Continuar lendo -->
   <div id="continue-bar" style="display:none;align-items:center;gap:0.8rem;background:var(--surface2);border:1px solid var(--cyan);border-radius:4px;padding:0.7rem 1rem;margin-bottom:0.8rem;cursor:pointer;transition:background 0.2s"
        onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='var(--surface2)'">
     <span id="continue-label" style="font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:2px;flex:1"></span>
     <span style="font-size:0.65rem;color:var(--muted);font-family:'Share Tech Mono',monospace">TOQUE PARA CONTINUAR →</span>
   </div>
-  <!-- Progresso de leitura -->
   <div id="read-progress-bar" style="display:none;margin-bottom:0.8rem">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem">
       <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:1px">// PROGRESSO DE LEITURA</span>
@@ -1299,13 +612,11 @@ header::after {
       <button onclick="closeAuthModal()" style="margin-left:auto;background:none;border:none;color:var(--muted);
         cursor:pointer;font-size:1.2rem;padding:0 0.5rem">✕</button>
     </div>
-    <!-- Login -->
     <div id="auth-form-login" style="display:flex;flex-direction:column;gap:0.8rem">
       <input id="login-user" class="auth-input" type="text" placeholder="Username" autocomplete="username">
       <input id="login-pass" class="auth-input" type="password" placeholder="Senha" autocomplete="current-password">
-      <button class="btn-primary" onclick="doLogin(document.getElementById('login-user').value,document.getElementById('login-pass').value)">ENTRAR</button>
+      <button class="btn-primary" onclick="doLogin(document.getElementById('login-user').value,document.getElementById('login-pass').value,false)">ENTRAR</button>
     </div>
-    <!-- Register -->
     <div id="auth-form-reg" style="display:none;flex-direction:column;gap:0.8rem">
       <input id="reg-user" class="auth-input" type="text" placeholder="Username (mín. 3 caracteres)" autocomplete="username">
       <input id="reg-pass" class="auth-input" type="password" placeholder="Senha (mín. 6 caracteres)" autocomplete="new-password">
@@ -1324,7 +635,7 @@ function proxyImg(url) {
   return `${API}/image?url=${encodeURIComponent(url)}`;
 }
 
-// ── GÊNEROS ──────────────────────────────────────────────────────────────────
+// ── GÊNEROS ───────────────────────────────────────────────────────────────────
 const GENRES = [
   {key:'action',label:'AÇÃO'},{key:'adventure',label:'AVENTURA'},
   {key:'comedy',label:'COMÉDIA'},{key:'drama',label:'DRAMA'},
@@ -1377,8 +688,8 @@ renderGenrePills('home-genre-pills');
 
 let currentManga = null, allResults = [];
 
-// ── AUTH ─────────────────────────────────────────────────────────────────────
-let _session = null; // { token, username, role }
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+let _session = null; // { token, username, role, user_id }
 
 function authHeaders() {
   if (!_session) return { 'Content-Type': 'application/json' };
@@ -1393,7 +704,8 @@ function isLoggedIn() { return !!_session; }
 function isAdmin()    { return _session?.role === 'admin'; }
 
 function setSession(data) {
-  _session = data ? { token: data.token, username: data.username, role: data.role } : null;
+  // CORREÇÃO: inclui user_id retornado pelo backend
+  _session = data ? { token: data.token, username: data.username, role: data.role, user_id: data.user_id } : null;
   updateAuthUI();
 }
 
@@ -1413,16 +725,16 @@ function updateAuthUI() {
     if (btnAdmin)  btnAdmin.style.display  = 'none';
     if (userLabel) userLabel.textContent   = '';
   }
-  // Reseta caches ao trocar de usuário
   _progressoCache = null;
   _notifSeenCache = null;
-  _favsCache = null;
+  _favsCache      = null;
 }
 
 async function doLogin(username, senha, isRegister=false) {
   const endpoint = isRegister ? 'registro' : 'login';
   const msgEl = document.getElementById('auth-msg');
-  msgEl.textContent = '';
+  msgEl.textContent = 'AGUARDE...';
+  msgEl.style.color = 'var(--muted)';
   try {
     const r = await fetch(`${API}/auth/${endpoint}`, {
       method: 'POST',
@@ -1430,13 +742,19 @@ async function doLogin(username, senha, isRegister=false) {
       body: JSON.stringify({ username: username.trim().toLowerCase(), senha })
     });
     const d = await r.json();
-    if (!r.ok) { msgEl.textContent = d.error || 'Erro desconhecido'; return; }
+    if (!r.ok) {
+      msgEl.style.color = 'var(--pink)';
+      msgEl.textContent = d.error || 'Erro desconhecido';
+      return;
+    }
     setSession(d);
     closeAuthModal();
-    // Recarrega dados do usuário
     _progressoCache = null; _notifSeenCache = null; _favsCache = null;
     showNotifToast([{ title: `Bem-vindo, ${d.username}!`, chapter: '', manga: null, isSys: true }]);
-  } catch { msgEl.textContent = 'Erro de conexão'; }
+  } catch(e) {
+    msgEl.style.color = 'var(--pink)';
+    msgEl.textContent = 'Erro de conexão';
+  }
 }
 
 async function doLogout() {
@@ -1464,7 +782,7 @@ function switchAuthTab(tab) {
   document.getElementById('auth-msg').textContent = '';
 }
 
-// ── ADMIN PANEL ───────────────────────────────────────────────────────────────
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
 async function openAdmin() {
   showPage('admin');
   const list = document.getElementById('admin-user-list');
@@ -1512,13 +830,10 @@ async function adminDelete(uid, username) {
   openAdmin();
 }
 
-// ── PROGRESSO & STATE (100% Supabase, cache em memória) ──────────────────────
-// Sem localStorage — funciona em qualquer dispositivo sincronizado
+// ── PROGRESSO (cache em memória, Supabase em background) ──────────────────────
+let _progressoCache = null;
+let _notifSeenCache = null;
 
-let _progressoCache = null; // { manga_id: { last, read } }
-let _notifSeenCache = null; // { manga_id: ultimo_cap_num }
-
-// Carrega todo o progresso do Supabase uma única vez por sessão
 async function _getProgresso() {
   if (_progressoCache !== null) return _progressoCache;
   if (!isLoggedIn()) { _progressoCache = {}; return _progressoCache; }
@@ -1536,7 +851,6 @@ async function _getProgresso() {
   return _progressoCache;
 }
 
-// Carrega notif_seen do Supabase uma única vez por sessão
 async function _getNotifSeen() {
   if (_notifSeenCache !== null) return _notifSeenCache;
   if (!isLoggedIn()) { _notifSeenCache = {}; return _notifSeenCache; }
@@ -1548,13 +862,12 @@ async function _getNotifSeen() {
   return _notifSeenCache;
 }
 
-// Salva progresso: atualiza cache imediatamente, envia ao Supabase em background
 async function dbSaveProgresso(manga, chapterId, chapterNum, source) {
   const prog = await _getProgresso();
   if (!prog[manga.id]) prog[manga.id] = { last: {}, read: {} };
   prog[manga.id].last = { id: chapterId, num: chapterNum, source };
   prog[manga.id].read[String(chapterId)] = true;
-  if (!isLoggedIn()) return; // sem conta, fica só em memória na sessão
+  if (!isLoggedIn()) return;
   authFetch(`${API}/progresso/salvar`, {
     method: 'POST',
     body: JSON.stringify({
@@ -1575,36 +888,40 @@ async function dbSaveProgresso(manga, chapterId, chapterNum, source) {
 async function dbSaveHistory(manga, chapterId, chapterNum) {
   if (!isLoggedIn()) return;
   try {
-    await authFetch(`${API}/historico/salvar`,{method:'POST',
-      body:JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
+    await authFetch(`${API}/historico/salvar`, { method:'POST',
+      body: JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
         manga_source:manga.source||'',chapter_id:chapterId,chapter_num:chapterNum,manga_data:manga})});
   } catch {}
 }
+
 async function dbSaveFav(manga) {
   if (!isLoggedIn()) return;
   try {
-    await authFetch(`${API}/favoritos/salvar`,{method:'POST',
-      body:JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
+    await authFetch(`${API}/favoritos/salvar`, { method:'POST',
+      body: JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
         manga_source:manga.source||'',manga_data:manga})});
   } catch {}
 }
+
 async function dbRemoveFav(mangaId) {
   if (!isLoggedIn()) return;
   try {
-    await authFetch(`${API}/favoritos/remover`,{method:'POST',
-      body:JSON.stringify({manga_id:mangaId})});
+    await authFetch(`${API}/favoritos/remover`, { method:'POST',
+      body: JSON.stringify({manga_id:mangaId})});
   } catch {}
 }
+
 async function dbLoadHistory() {
   if (!isLoggedIn()) return [];
   try { const r=await authFetch(`${API}/historico`); const d=await r.json(); return d.historico||[]; } catch { return []; }
 }
+
 async function dbLoadFavorites() {
   if (!isLoggedIn()) return [];
   try { const r=await authFetch(`${API}/favoritos`); const d=await r.json(); return d.favoritos||[]; } catch { return []; }
 }
 
-// ── HOME DATA ─────────────────────────────────────────────────────────────────
+// ── HOME DATA ──────────────────────────────────────────────────────────────────
 async function loadHomeData() {
   Promise.all([
     fetch(`${API}/releases?lang=pt-br`).then(r=>r.json()).catch(()=>({releases:[]})),
@@ -1649,14 +966,14 @@ function renderPopular(items) {
   }).join('');
 }
 
-// ── NAVIGATION ───────────────────────────────────────────────────────────────
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(name+'-page').classList.add('active');
   if (!['detail','reader'].includes(name)) history.replaceState(null,'','#'+name);
   if (name==='favorites') renderFavorites();
-  if (name==='history') renderHistory();
-  if (name==='results') renderGenrePills('results-genre-pills');
+  if (name==='history')   renderHistory();
+  if (name==='results')   renderGenrePills('results-genre-pills');
   if (name==='explore') {
     renderGenrePills('explore-genre-pills');
     if (!document.getElementById('explore-grid').innerHTML.trim()) loadExplore(true);
@@ -1669,7 +986,7 @@ const TYPE_LABELS = {all:'// TODOS OS TÍTULOS',manga:'// MANGA',manhwa:'// MANH
 
 function setExploreType(type, btn) {
   exploreType = type;
-  document.querySelectorAll('.type-tab, .tab-btn').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   loadExplore(true);
 }
@@ -1677,13 +994,13 @@ function setExploreType(type, btn) {
 async function loadExplore(reset=false) {
   if (reset) exploreOffset = 0;
   const grid = document.getElementById('explore-grid');
-  const btn = document.getElementById('load-more-btn');
+  const btn  = document.getElementById('load-more-btn');
   if (reset) grid.innerHTML = '<div class="loader">CARREGANDO DADOS</div>';
   document.getElementById('explore-title').textContent = TYPE_LABELS[exploreType]||'// EXPLORAR';
   let url = `${API}/explore?type=${exploreType}&lang=pt-br&offset=${exploreOffset}`;
   if (selectedGenres.size>0) url += '&'+[...selectedGenres].map(g=>`tags[]=${g}`).join('&');
   try {
-    const r = await fetch(url);
+    const r    = await fetch(url);
     const data = await r.json();
     exploreTotal = data.total||0;
     renderGrid(data.results||[], 'explore-grid', !reset);
@@ -1710,7 +1027,7 @@ async function doSearch(q) {
   try {
     let url = `${API}/search?q=${encodeURIComponent(q)}&lang=${lang}&source=all`;
     if (selectedGenres.size>0) url += '&'+[...selectedGenres].map(g=>`tags[]=${g}`).join('&');
-    const r = await fetch(url);
+    const r    = await fetch(url);
     const data = await r.json();
     allResults = data.results||[];
     renderGrid(allResults, 'results-grid');
@@ -1734,11 +1051,11 @@ function renderGrid(items, containerId, append=false) {
     return;
   }
   const html = items.map(m => {
-    const safeM = JSON.stringify(m).replace(/"/g,'&quot;');
+    const safeM       = JSON.stringify(m).replace(/"/g,'&quot;');
     const sourceLabel = m.source==='mangadex'?'MANGADEX':m.source==='comick'?'COMICK':'MANGAZORD';
-    const scoreHTML = m.score ? `<div class="card-score">★ ${parseFloat(m.score).toFixed(1)}</div>` : '';
-    const tipoHTML = m.tipo ? `<div class="card-tipo ${m.tipo}">${m.tipo.toUpperCase()}</div>` : '';
-    const tagsHTML = (m.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('');
+    const scoreHTML   = m.score ? `<div class="card-score">★ ${parseFloat(m.score).toFixed(1)}</div>` : '';
+    const tipoHTML    = m.tipo  ? `<div class="card-tipo ${m.tipo}">${m.tipo.toUpperCase()}</div>` : '';
+    const tagsHTML    = (m.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('');
     return `<div class="manga-card" onclick='openManga(${safeM})'>
       <img src="${proxyImg(m.cover)}" alt="${m.title}" loading="lazy" onerror="this.style.background='var(--surface2)'">
       <div class="card-source ${m.source}">${sourceLabel}</div>
@@ -1751,7 +1068,7 @@ function renderGrid(items, containerId, append=false) {
     </div>`;
   }).join('');
   if (append) grid.innerHTML += html;
-  else grid.innerHTML = html;
+  else        grid.innerHTML  = html;
 }
 
 function translateStatus(s) {
@@ -1761,13 +1078,13 @@ function translateStatus(s) {
 // ── OPEN MANGA ────────────────────────────────────────────────────────────────
 async function openManga(manga) {
   currentManga = manga;
-  document.getElementById('detail-title').textContent = manga.title;
-  document.getElementById('detail-desc').textContent = manga.description||'Sem descrição.';
-  document.getElementById('detail-cover').src = proxyImg(manga.cover);
-  document.getElementById('detail-status').textContent = translateStatus(manga.status);
-  const badge = document.getElementById('detail-source-badge');
+  document.getElementById('detail-title').textContent   = manga.title;
+  document.getElementById('detail-desc').textContent    = manga.description||'Sem descrição.';
+  document.getElementById('detail-cover').src           = proxyImg(manga.cover);
+  document.getElementById('detail-status').textContent  = translateStatus(manga.status);
+  const badge    = document.getElementById('detail-source-badge');
   const srcLabel = manga.source==='comick'?'COMICK':manga.source==='mangazord'?'MANGAZORD':'MANGADEX';
-  const srcColor = manga.source==='comick'?'var(--blue)':manga.source==='mangazord'?'#00ff9d':'var(--cyan)';
+  const srcColor = manga.source==='comick'?'#80b3ff':manga.source==='mangazord'?'#00ff9d':'var(--cyan)';
   badge.innerHTML = `<span style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;color:${srcColor};border:1px solid;border-color:currentColor;padding:0.2rem 0.6rem;border-radius:2px;background:rgba(0,0,0,0.3)">◈ ${srcLabel}</span>`;
   const scoreEl = document.getElementById('detail-score');
   scoreEl.style.display = 'none';
@@ -1787,8 +1104,8 @@ async function fetchScoreBackground(title) {
     const d = await r.json();
     if (d.score) {
       const el = document.getElementById('detail-score');
-      el.textContent = `★ ${parseFloat(d.score).toFixed(2)} MAL`;
-      el.style.display = 'inline';
+      el.textContent    = `★ ${parseFloat(d.score).toFixed(2)} MAL`;
+      el.style.display  = 'inline';
       return;
     }
     if (d.pending) {
@@ -1798,7 +1115,7 @@ async function fetchScoreBackground(title) {
           const d2 = await r2.json();
           if (d2.score) {
             const el = document.getElementById('detail-score');
-            el.textContent = `★ ${parseFloat(d2.score).toFixed(2)} MAL`;
+            el.textContent   = `★ ${parseFloat(d2.score).toFixed(2)} MAL`;
             el.style.display = 'inline';
           }
         } catch {}
@@ -1810,10 +1127,10 @@ async function fetchScoreBackground(title) {
 // ── CHAPTERS ──────────────────────────────────────────────────────────────────
 async function loadChapters() {
   if (!currentManga) return;
-  const lang = document.getElementById('chapter-lang').value;
-  const list = document.getElementById('chapters-list');
+  const lang   = document.getElementById('chapter-lang').value;
+  const list   = document.getElementById('chapters-list');
   const notice = document.getElementById('lang-notice');
-  list.innerHTML = '<div class="loader">CARREGANDO CAPÍTULOS</div>';
+  list.innerHTML    = '<div class="loader">CARREGANDO CAPÍTULOS</div>';
   notice.style.display = 'none';
   try {
     const slug = currentManga.slug||'';
@@ -1828,7 +1145,7 @@ async function loadChapters() {
       for (const fl of (fallbacks[lang]||[])) {
         const ctrl2 = new AbortController();
         const timer2 = setTimeout(() => ctrl2.abort(), 10000);
-        r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${fl}&source=${currentManga.source}&slug=${slug}`, { signal: ctrl2.signal });
+        r    = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${fl}&source=${currentManga.source}&slug=${slug}`, { signal: ctrl2.signal });
         clearTimeout(timer2);
         data = await r.json();
         if (data.chapters&&data.chapters.length) { usedLang=fl; break; }
@@ -1842,32 +1159,27 @@ async function loadChapters() {
     }
     if (usedLang!==lang) {
       const langNames = {'pt-br':'PT-BR','pt':'PT','en':'EN'};
-      notice.textContent = `// IDIOMA ${langNames[lang]} INDISPONÍVEL — EXIBINDO ${langNames[usedLang]}`;
+      notice.textContent   = `// IDIOMA ${langNames[lang]} INDISPONÍVEL — EXIBINDO ${langNames[usedLang]}`;
       notice.style.display = 'block';
     }
     currentChapterList = data.chapters;
-    // Busca progresso do cache Supabase (já carregado na sessão)
     const prog = await _getProgresso();
-    const p = prog[currentManga.id] || { read: {}, last: null };
+    const p    = prog[currentManga.id] || { read: {}, last: null };
     const read = p.read;
     const last = p.last;
-    const readCount = data.chapters.filter(c => read[String(c.id)]).length;
+    const readCount  = data.chapters.filter(c => read[String(c.id)]).length;
     const totalCount = data.chapters.length;
-    // Progresso de leitura
     const progressPct = totalCount > 0 ? Math.round((readCount/totalCount)*100) : 0;
     document.getElementById('chapter-count').textContent = `[${totalCount} CAPÍTULOS]`;
-    // Botão continuar lendo
     const continueBar = document.getElementById('continue-bar');
-    if (last && read[last.id]) {
+    if (last && last.id && read[String(last.id)]) {
       continueBar.style.display = 'flex';
-      document.getElementById('continue-label').textContent =
-        `▶ CONTINUAR — CAP. ${last.num}`;
+      document.getElementById('continue-label').textContent = `▶ CONTINUAR — CAP. ${last.num}`;
       continueBar.onclick = () => openChapter(last.id, last.num, last.source);
     } else {
       continueBar.style.display = 'none';
     }
-    // Barra de progresso
-    const progBar = document.getElementById('read-progress-bar');
+    const progBar  = document.getElementById('read-progress-bar');
     const progText = document.getElementById('read-progress-text');
     if (readCount > 0) {
       progBar.style.display = 'block';
@@ -1875,7 +1187,6 @@ async function loadChapters() {
       progText.textContent = `${readCount}/${totalCount} LIDOS (${progressPct}%)`;
     } else {
       progBar.style.display = 'none';
-      progText.textContent = '';
     }
     list.innerHTML = data.chapters.map(c => `
       <div class="chapter-item ${read[String(c.id)]?'read':''}"
@@ -1891,24 +1202,20 @@ async function loadChapters() {
 
 // ── READER ────────────────────────────────────────────────────────────────────
 let currentChapterList = [], currentChapterIndex = -1;
-
-let lastReaderChapterId = null;
-let lastReaderSource = null;
+let lastReaderChapterId = null, lastReaderSource = null;
 
 async function openChapter(id, num, source) {
   lastReaderChapterId = id;
-  lastReaderSource = source || currentManga?.source || 'mangadex';
+  lastReaderSource    = source || currentManga?.source || 'mangadex';
   const idx = currentChapterList.findIndex(c=>c.id===id);
   currentChapterIndex = idx;
   updateNavButtons();
-  document.getElementById('reader-title').textContent = `${currentManga?.title||''} // CAP. ${num}`;
+  document.getElementById('reader-title').textContent    = `${currentManga?.title||''} // CAP. ${num}`;
   document.getElementById('reader-progress').textContent = '';
-  document.getElementById('pages-container').innerHTML = '<div class="loader" style="color:var(--muted);padding:5rem">CARREGANDO DADOS</div>';
+  document.getElementById('pages-container').innerHTML   = '<div class="loader" style="color:var(--muted);padding:5rem">CARREGANDO DADOS</div>';
   document.getElementById('reader-end-nav').style.display = 'none';
   showPage('reader');
-  // Salva estado do leitor na URL para sobreviver ao F5
-  const readerState = { mid: currentManga?.id, cid: id, num, src: lastReaderSource,
-    manga: currentManga };
+  const readerState = { mid: currentManga?.id, cid: id, num, src: lastReaderSource, manga: currentManga };
   history.replaceState(readerState, '', '#reader');
   scrollTo(0,0);
   if (currentManga) {
@@ -1917,7 +1224,7 @@ async function openChapter(id, num, source) {
   }
   try {
     const src = source||currentManga?.source||'mangadex';
-    const r = await fetch(`${API}/pages?id=${id}&source=${src}`);
+    const r   = await fetch(`${API}/pages?id=${id}&source=${src}`);
     const data = await r.json();
     const validPages = (data.pages||[]).filter(url => {
       if (!url) return false;
@@ -1932,36 +1239,31 @@ async function openChapter(id, num, source) {
       return;
     }
     document.getElementById('reader-progress').textContent = `[${validPages.length} PAG]`;
-    document.getElementById('pages-container').innerHTML = validPages.map((url,i) =>
+    document.getElementById('pages-container').innerHTML   = validPages.map((url,i) =>
       `<img class="reader-page-img" data-src="${url}" data-idx="${i}" alt="Página ${i+1}"
         style="min-height:300px;background:var(--surface2)">`
     ).join('');
 
-    // Retry automático: URL do MangaDex at-home expira em ~15min
-    // Se imagem quebrar durante leitura, rebusca as páginas e troca a src
     function attachRetry(img) {
       img.addEventListener('error', async function() {
         const retries = parseInt(img.dataset.retries || '0');
         if (retries >= 2) { img.style.opacity = '0.12'; return; }
         img.dataset.retries = retries + 1;
-        img.style.opacity = '0.3';
+        img.style.opacity   = '0.3';
         try {
           const cid = lastReaderChapterId;
           const src = lastReaderSource || 'mangadex';
           if (!cid) return;
-          const r = await fetch(`${API}/pages?id=${cid}&source=${src}`);
-          const data = await r.json();
-          const idx = parseInt(img.dataset.idx || '0');
-          const newUrl = (data.pages || [])[idx];
-          if (newUrl && newUrl !== img.src) {
-            img.src = newUrl;
-            img.style.opacity = '1';
-          }
+          const r2   = await fetch(`${API}/pages?id=${cid}&source=${src}`);
+          const data2 = await r2.json();
+          const idx2  = parseInt(img.dataset.idx || '0');
+          const newUrl = (data2.pages || [])[idx2];
+          if (newUrl && newUrl !== img.src) { img.src = newUrl; img.style.opacity = '1'; }
         } catch { img.style.opacity = '0.5'; }
       });
     }
 
-    const imgs = document.querySelectorAll('#pages-container img[data-src]');
+    const imgs     = document.querySelectorAll('#pages-container img[data-src]');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -1974,6 +1276,7 @@ async function openChapter(id, num, source) {
       });
     }, {rootMargin:'500px'});
     imgs.forEach(img => observer.observe(img));
+
     const endNav = document.getElementById('reader-end-nav');
     endNav.style.display = 'flex';
     document.getElementById('end-btn-next').disabled = currentChapterIndex >= currentChapterList.length-1;
@@ -1984,8 +1287,10 @@ async function openChapter(id, num, source) {
 }
 
 function updateNavButtons() {
-  const btnPrev=document.getElementById('btn-prev'), btnNext=document.getElementById('btn-next');
-  const endNext=document.getElementById('end-btn-next'), endPrev=document.getElementById('end-btn-prev');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const endNext = document.getElementById('end-btn-next');
+  const endPrev = document.getElementById('end-btn-prev');
   if (btnPrev) btnPrev.disabled = currentChapterIndex<=0;
   if (btnNext) btnNext.disabled = currentChapterIndex<0||currentChapterIndex>=currentChapterList.length-1;
   if (endNext) endNext.disabled = currentChapterIndex>=currentChapterList.length-1;
@@ -2003,13 +1308,16 @@ function goBackToDetail() { showPage('detail'); }
 
 // ── FAVORITES ─────────────────────────────────────────────────────────────────
 let _favsCache = null;
+
 async function _getFavs() {
   if (_favsCache === null) _favsCache = await dbLoadFavorites();
   return _favsCache;
 }
+
 async function toggleFav() {
   if (!currentManga) return;
-  const favs = await _getFavs();
+  if (!isLoggedIn()) { openAuthModal('login'); return; }
+  const favs  = await _getFavs();
   const isFav = favs.some(f=>f.manga_id===currentManga.id);
   if (isFav) {
     await dbRemoveFav(currentManga.id);
@@ -2020,37 +1328,48 @@ async function toggleFav() {
   }
   updateFavBtn();
 }
+
 async function updateFavBtn() {
-  const btn = document.getElementById('fav-btn');
-  const favs = await _getFavs();
+  const btn   = document.getElementById('fav-btn');
+  const favs  = await _getFavs();
   const isFav = currentManga&&favs.some(f=>f.manga_id===currentManga.id);
   btn.textContent = isFav ? '★ FAVORITADO' : '♡ FAVORITAR';
   btn.classList.toggle('saved', !!isFav);
 }
+
 async function renderFavorites() {
   _favsCache = null;
   const grid = document.getElementById('favorites-grid');
   grid.innerHTML = '<div class="loader">CARREGANDO</div>';
+  if (!isLoggedIn()) {
+    grid.innerHTML = '<div class="empty-msg"><span>LOGIN</span>Faça login para ver seus favoritos.</div>';
+    return;
+  }
   const dbFavs = await _getFavs();
   if (!dbFavs.length) { grid.innerHTML = '<div class="empty-msg"><span>VAZIO</span>Nenhum favorito salvo.</div>'; return; }
   const items = dbFavs.map(f=>{
-    const d=f.manga_data||{};
+    const d = f.manga_data||{};
     return {id:f.manga_id||d.id||'',title:f.manga_title||d.title||'Sem título',
       cover:f.manga_cover||d.cover||'',source:f.manga_source||d.source||'mangadex',
       status:d.status||'',tags:d.tags||[],score:d.score||null,slug:d.slug||'',tipo:d.tipo||''};
   });
   renderGrid(items, 'favorites-grid');
 }
+
 async function renderHistory() {
   const list = document.getElementById('history-list');
   list.innerHTML = '<div class="loader">CARREGANDO</div>';
+  if (!isLoggedIn()) {
+    list.innerHTML = '<div class="empty-msg"><span>LOGIN</span>Faça login para ver seu histórico.</div>';
+    return;
+  }
   const dbHist = await dbLoadHistory();
   if (!dbHist.length) { list.innerHTML = '<div class="empty-msg"><span>VAZIO</span>Nenhum histórico ainda.</div>'; return; }
   list.innerHTML = dbHist.map(h => {
-    const manga = h.manga_data||{id:h.manga_id,title:h.manga_title,cover:h.manga_cover,source:h.manga_source};
-    const safeM = JSON.stringify(manga).replace(/"/g,'&quot;');
-    const date = new Date(h.lido_em).toLocaleDateString('pt-BR');
-    const srcColor = h.manga_source==='comick'?'var(--blue)':h.manga_source==='mangazord'?'#00ff9d':'var(--cyan)';
+    const manga  = h.manga_data||{id:h.manga_id,title:h.manga_title,cover:h.manga_cover,source:h.manga_source};
+    const safeM  = JSON.stringify(manga).replace(/"/g,'&quot;');
+    const date   = new Date(h.lido_em).toLocaleDateString('pt-BR');
+    const srcColor = h.manga_source==='comick'?'#80b3ff':h.manga_source==='mangazord'?'#00ff9d':'var(--cyan)';
     return `<div class="chapter-item" onclick='openManga(${safeM})'>
       <img src="${proxyImg(h.manga_cover)}" style="width:36px;height:50px;object-fit:cover;border-radius:2px;margin-right:1rem;border:1px solid var(--border)" onerror="this.style.display='none'">
       <div style="flex:1">
@@ -2062,26 +1381,27 @@ async function renderHistory() {
   }).join('');
 }
 
-// ── NOTIFICAÇÕES DE NOVOS CAPÍTULOS ──────────────────────────────────────────
+// ── NOTIFICAÇÕES ──────────────────────────────────────────────────────────────
 async function checkNewChapters() {
+  if (!isLoggedIn()) return;
   const favs = await _getFavs();
   if (!favs.length) return;
   const seen = await _getNotifSeen();
   const news = [];
   await Promise.allSettled(favs.map(async fav => {
     try {
-      const mid = fav.manga_id;
-      const src = fav.manga_source||'mangadex';
+      const mid  = fav.manga_id;
+      const src  = fav.manga_source||'mangadex';
       const slug = fav.manga_data?.slug||'';
       const ctrl = new AbortController();
       setTimeout(() => ctrl.abort(), 8000);
       const r = await fetch(`${API}/chapters?id=${mid}&lang=pt-br&source=${src}&slug=${slug}`,{signal:ctrl.signal});
       const d = await r.json();
-      const chapters = d.chapters||[];
+      const chapters   = d.chapters||[];
       if (!chapters.length) return;
-      const latest = chapters[chapters.length-1];
-      const latestNum = latest.chapter;
-      const prevNum = seen[mid];
+      const latest     = chapters[chapters.length-1];
+      const latestNum  = latest.chapter;
+      const prevNum    = seen[mid];
       if (prevNum !== undefined && latestNum !== prevNum) {
         news.push({ title: fav.manga_title, chapter: latestNum,
           manga: fav.manga_data||{id:mid,title:fav.manga_title,cover:fav.manga_cover,source:src} });
@@ -2089,7 +1409,6 @@ async function checkNewChapters() {
       seen[mid] = latestNum;
     } catch {}
   }));
-  // Salva seen atualizado no Supabase em background
   if (isLoggedIn()) {
     authFetch(`${API}/notif/salvar`, {
       method: 'POST',
@@ -2104,40 +1423,40 @@ function showNotifToast(items) {
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'notif-toast';
-    toast.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:320px`;
+    toast.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:320px';
     document.body.appendChild(toast);
   }
   items.forEach(item => {
     const el = document.createElement('div');
-    el.style.cssText = `background:var(--surface2);border:1px solid var(--cyan);border-radius:6px;padding:0.8rem 1rem;
-      font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;box-shadow:0 0 20px rgba(0,245,255,0.15);
-      animation:slideIn 0.3s ease;display:flex;flex-direction:column;gap:0.3rem`;
-    el.innerHTML = `
-      <span style="color:var(--cyan);letter-spacing:1px">🔔 NOVO CAPÍTULO</span>
-      <span style="color:var(--text);font-size:0.75rem;font-family:'Rajdhani',sans-serif;font-weight:600">${item.title}</span>
-      <span style="color:var(--muted)">CAP. ${item.chapter} disponível</span>`;
-    el.onclick = () => { openManga(item.manga); el.remove(); };
+    el.style.cssText = 'background:var(--surface2);border:1px solid var(--cyan);border-radius:6px;padding:0.8rem 1rem;font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;cursor:pointer;box-shadow:0 0 20px rgba(0,245,255,0.15);animation:slideIn 0.3s ease;display:flex;flex-direction:column;gap:0.3rem';
+    if (item.isSys) {
+      el.innerHTML = `<span style="color:var(--cyan);letter-spacing:1px">✓ ${item.title}</span>`;
+    } else {
+      el.innerHTML = `
+        <span style="color:var(--cyan);letter-spacing:1px">🔔 NOVO CAPÍTULO</span>
+        <span style="color:var(--text);font-size:0.75rem;font-family:'Rajdhani',sans-serif;font-weight:600">${item.title}</span>
+        <span style="color:var(--muted)">CAP. ${item.chapter} disponível</span>`;
+      el.onclick = () => { openManga(item.manga); el.remove(); };
+    }
     toast.appendChild(el);
-    setTimeout(() => el.remove(), 8000);
+    setTimeout(() => el.remove(), 5000);
   });
 }
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────────────────
 (async function restorePageFromHash() {
-  const hash = location.hash.replace('#','');
+  const hash  = location.hash.replace('#','');
   const valid = ['home','explore','favorites','history','results'];
 
-  // Tenta restaurar o leitor se estava lendo ao recarregar
   if (hash === 'reader') {
     const st = history.state;
     if (st && st.cid && st.manga) {
       currentManga = st.manga;
-      // Carrega capítulos em background para ter a lista disponível
       try {
         const slug = currentManga.slug||'';
         const lang = document.getElementById('chapter-lang')?.value||'pt-br';
-        const r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`);
-        const d = await r.json();
+        const r    = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`);
+        const d    = await r.json();
         currentChapterList = d.chapters||[];
       } catch { currentChapterList = []; }
       openChapter(st.cid, st.num, st.src);
