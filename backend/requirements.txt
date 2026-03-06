@@ -1,1 +1,2 @@
 # MangaRX usa apenas bibliotecas padrão do Python, sem dependências externas
+PyJWT==2.7.0
