@@ -2,7 +2,7 @@ services:
   - type: web
     name: mangarx-backend
     runtime: python
-    buildCommand: echo "sem dependencias"
+    buildCommand: pip install -r backend/requirements.txt
     startCommand: python server.py
     envVars:
       - key: PORT
