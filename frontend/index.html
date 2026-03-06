@@ -32,6 +32,29 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
+.auth-tab {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--muted); cursor: pointer; padding: 0.6rem 1.2rem;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; letter-spacing: 2px;
+  transition: all 0.2s;
+}
+.auth-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+.auth-input {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); font-family: 'Rajdhani', sans-serif; font-size: 0.95rem;
+  padding: 0.65rem 0.9rem; outline: none; transition: border-color 0.2s;
+}
+.auth-input:focus { border-color: var(--cyan); }
+.admin-user-row {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.7rem 1rem;
+}
+.admin-user-name { font-weight: 700; font-size: 0.9rem; flex: 1; min-width: 120px; }
+.admin-user-meta { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); }
+.admin-user-status { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; }
+.admin-user-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -1081,6 +1104,10 @@ header::after {
     <button class="nav-btn" onclick="showPage('explore')">◈ EXPLORAR</button>
     <button class="nav-btn" onclick="showPage('favorites')">◆ FAVORITOS</button>
     <button class="nav-btn" onclick="showPage('history')">◉ HISTÓRICO</button>
+    <span id="user-label" style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--cyan);margin-left:auto"></span>
+    <button id="btn-admin-nav" class="nav-btn" style="display:none;color:var(--gold)" onclick="openAdmin()">⚙ ADMIN</button>
+    <button id="btn-login-nav" class="nav-btn" onclick="openAuthModal('login')">ENTRAR</button>
+    <button id="btn-logout-nav" class="nav-btn" style="display:none" onclick="doLogout()">SAIR</button>
   </div>
 </header>
 
@@ -1255,6 +1282,40 @@ header::after {
   <div id="history-list" style="display:flex;flex-direction:column;gap:0.3rem;"></div>
 </div>
 
+<!-- ADMIN -->
+<div id="admin-page" class="page">
+  <div class="section-title">⚙ PAINEL ADMIN</div>
+  <div id="admin-user-list" style="display:flex;flex-direction:column;gap:0.5rem;margin-top:1rem"></div>
+</div>
+
+<!-- MODAL AUTH -->
+<div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(8px);align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:2rem;width:100%;max-width:380px;display:flex;flex-direction:column;gap:1.2rem">
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0.5rem">
+      <button id="auth-tab-login" class="auth-tab active" onclick="switchAuthTab('login')">ENTRAR</button>
+      <button id="auth-tab-reg"   class="auth-tab"        onclick="switchAuthTab('register')">CADASTRAR</button>
+      <button onclick="closeAuthModal()" style="margin-left:auto;background:none;border:none;color:var(--muted);
+        cursor:pointer;font-size:1.2rem;padding:0 0.5rem">✕</button>
+    </div>
+    <!-- Login -->
+    <div id="auth-form-login" style="display:flex;flex-direction:column;gap:0.8rem">
+      <input id="login-user" class="auth-input" type="text" placeholder="Username" autocomplete="username">
+      <input id="login-pass" class="auth-input" type="password" placeholder="Senha" autocomplete="current-password">
+      <button class="btn-primary" onclick="doLogin(document.getElementById('login-user').value,document.getElementById('login-pass').value)">ENTRAR</button>
+    </div>
+    <!-- Register -->
+    <div id="auth-form-reg" style="display:none;flex-direction:column;gap:0.8rem">
+      <input id="reg-user" class="auth-input" type="text" placeholder="Username (mín. 3 caracteres)" autocomplete="username">
+      <input id="reg-pass" class="auth-input" type="password" placeholder="Senha (mín. 6 caracteres)" autocomplete="new-password">
+      <button class="btn-primary" onclick="doLogin(document.getElementById('reg-user').value,document.getElementById('reg-pass').value,true)">CRIAR CONTA</button>
+    </div>
+    <div id="auth-msg" style="color:var(--pink);font-family:'Share Tech Mono',monospace;font-size:0.7rem;
+      text-align:center;min-height:1rem"></div>
+  </div>
+</div>
+
 <script>
 const API = 'https://mangarx-backend.onrender.com/api';
 
@@ -1316,6 +1377,141 @@ renderGenrePills('home-genre-pills');
 
 let currentManga = null, allResults = [];
 
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+let _session = null; // { token, username, role }
+
+function authHeaders() {
+  if (!_session) return { 'Content-Type': 'application/json' };
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_session.token}` };
+}
+
+function authFetch(url, opts={}) {
+  return fetch(url, { ...opts, headers: { ...(opts.headers||{}), ...authHeaders() } });
+}
+
+function isLoggedIn() { return !!_session; }
+function isAdmin()    { return _session?.role === 'admin'; }
+
+function setSession(data) {
+  _session = data ? { token: data.token, username: data.username, role: data.role } : null;
+  updateAuthUI();
+}
+
+function updateAuthUI() {
+  const btnLogin  = document.getElementById('btn-login-nav');
+  const btnLogout = document.getElementById('btn-logout-nav');
+  const btnAdmin  = document.getElementById('btn-admin-nav');
+  const userLabel = document.getElementById('user-label');
+  if (_session) {
+    if (btnLogin)  btnLogin.style.display  = 'none';
+    if (btnLogout) btnLogout.style.display = 'inline-flex';
+    if (btnAdmin)  btnAdmin.style.display  = isAdmin() ? 'inline-flex' : 'none';
+    if (userLabel) userLabel.textContent   = `◉ ${_session.username.toUpperCase()}`;
+  } else {
+    if (btnLogin)  btnLogin.style.display  = 'inline-flex';
+    if (btnLogout) btnLogout.style.display = 'none';
+    if (btnAdmin)  btnAdmin.style.display  = 'none';
+    if (userLabel) userLabel.textContent   = '';
+  }
+  // Reseta caches ao trocar de usuário
+  _progressoCache = null;
+  _notifSeenCache = null;
+  _favsCache = null;
+}
+
+async function doLogin(username, senha, isRegister=false) {
+  const endpoint = isRegister ? 'registro' : 'login';
+  const msgEl = document.getElementById('auth-msg');
+  msgEl.textContent = '';
+  try {
+    const r = await fetch(`${API}/auth/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username.trim().toLowerCase(), senha })
+    });
+    const d = await r.json();
+    if (!r.ok) { msgEl.textContent = d.error || 'Erro desconhecido'; return; }
+    setSession(d);
+    closeAuthModal();
+    // Recarrega dados do usuário
+    _progressoCache = null; _notifSeenCache = null; _favsCache = null;
+    showNotifToast([{ title: `Bem-vindo, ${d.username}!`, chapter: '', manga: null, isSys: true }]);
+  } catch { msgEl.textContent = 'Erro de conexão'; }
+}
+
+async function doLogout() {
+  if (_session) {
+    authFetch(`${API}/auth/logout`, { method: 'POST' }).catch(() => {});
+    setSession(null);
+  }
+}
+
+function openAuthModal(tab='login') {
+  document.getElementById('auth-modal').style.display = 'flex';
+  switchAuthTab(tab);
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').style.display = 'none';
+  document.getElementById('auth-msg').textContent = '';
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('auth-tab-reg').classList.toggle('active', tab==='register');
+  document.getElementById('auth-form-login').style.display   = tab==='login'    ? 'flex' : 'none';
+  document.getElementById('auth-form-reg').style.display     = tab==='register' ? 'flex' : 'none';
+  document.getElementById('auth-msg').textContent = '';
+}
+
+// ── ADMIN PANEL ───────────────────────────────────────────────────────────────
+async function openAdmin() {
+  showPage('admin');
+  const list = document.getElementById('admin-user-list');
+  list.innerHTML = '<div class="loader">CARREGANDO</div>';
+  try {
+    const r = await authFetch(`${API}/admin/usuarios`);
+    const d = await r.json();
+    const usuarios = d.usuarios || [];
+    if (!usuarios.length) { list.innerHTML = '<div class="loader">NENHUM USUÁRIO</div>'; return; }
+    list.innerHTML = usuarios.map(u => `
+      <div class="admin-user-row" id="adminrow-${u.id}">
+        <span class="admin-user-name">${u.username} ${u.role==='admin'?'👑':''}</span>
+        <span class="admin-user-meta">${new Date(u.criado_em).toLocaleDateString('pt-BR')}</span>
+        <span class="admin-user-status" style="color:${u.bloqueado?'var(--pink)':'var(--cyan)'}">${u.bloqueado?'BLOQUEADO':'ATIVO'}</span>
+        <div class="admin-user-actions">
+          ${u.id !== _session?.user_id ? `
+            <button class="btn-ghost" style="font-size:0.65rem;padding:0.3rem 0.6rem"
+              onclick="adminToggleBlock('${u.id}',${!u.bloqueado})">${u.bloqueado?'DESBLOQUEAR':'BLOQUEAR'}</button>
+            <button class="btn-ghost" style="font-size:0.65rem;padding:0.3rem 0.6rem"
+              onclick="adminToggleRole('${u.id}','${u.role==='admin'?'user':'admin'}')">${u.role==='admin'?'REMOVER ADMIN':'TORNAR ADMIN'}</button>
+            <button class="btn-ghost" style="font-size:0.65rem;padding:0.3rem 0.6rem;border-color:var(--pink);color:var(--pink)"
+              onclick="adminDelete('${u.id}','${u.username}')">DELETAR</button>
+          ` : '<span style="color:var(--muted);font-size:0.65rem">VOCÊ</span>'}
+        </div>
+      </div>`).join('');
+  } catch { list.innerHTML = '<div class="loader">ERRO AO CARREGAR</div>'; }
+}
+
+async function adminToggleBlock(uid, bloquear) {
+  await authFetch(`${API}/admin/usuario/bloquear`, { method:'POST',
+    body: JSON.stringify({ user_id: uid, bloqueado: bloquear }) });
+  openAdmin();
+}
+
+async function adminToggleRole(uid, role) {
+  await authFetch(`${API}/admin/usuario/role`, { method:'POST',
+    body: JSON.stringify({ user_id: uid, role }) });
+  openAdmin();
+}
+
+async function adminDelete(uid, username) {
+  if (!confirm(`Deletar usuário "${username}"? Esta ação é irreversível.`)) return;
+  await authFetch(`${API}/admin/usuario/deletar`, { method:'POST',
+    body: JSON.stringify({ user_id: uid }) });
+  openAdmin();
+}
+
 // ── PROGRESSO & STATE (100% Supabase, cache em memória) ──────────────────────
 // Sem localStorage — funciona em qualquer dispositivo sincronizado
 
@@ -1325,8 +1521,9 @@ let _notifSeenCache = null; // { manga_id: ultimo_cap_num }
 // Carrega todo o progresso do Supabase uma única vez por sessão
 async function _getProgresso() {
   if (_progressoCache !== null) return _progressoCache;
+  if (!isLoggedIn()) { _progressoCache = {}; return _progressoCache; }
   try {
-    const r = await fetch(`${API}/progresso`);
+    const r = await authFetch(`${API}/progresso`);
     const d = await r.json();
     _progressoCache = {};
     for (const p of (d.progresso||[])) {
@@ -1342,8 +1539,9 @@ async function _getProgresso() {
 // Carrega notif_seen do Supabase uma única vez por sessão
 async function _getNotifSeen() {
   if (_notifSeenCache !== null) return _notifSeenCache;
+  if (!isLoggedIn()) { _notifSeenCache = {}; return _notifSeenCache; }
   try {
-    const r = await fetch(`${API}/notif/seen`);
+    const r = await authFetch(`${API}/notif/seen`);
     const d = await r.json();
     _notifSeenCache = d.seen || {};
   } catch { _notifSeenCache = {}; }
@@ -1355,12 +1553,10 @@ async function dbSaveProgresso(manga, chapterId, chapterNum, source) {
   const prog = await _getProgresso();
   if (!prog[manga.id]) prog[manga.id] = { last: {}, read: {} };
   prog[manga.id].last = { id: chapterId, num: chapterNum, source };
-  prog[manga.id].read[String(chapterId)] = true; // garante string como chave
-
-  // Background — não bloqueia a UI
-  fetch(`${API}/progresso/salvar`, {
+  prog[manga.id].read[String(chapterId)] = true;
+  if (!isLoggedIn()) return; // sem conta, fica só em memória na sessão
+  authFetch(`${API}/progresso/salvar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       manga_id:         manga.id,
       manga_title:      manga.title,
@@ -1377,30 +1573,35 @@ async function dbSaveProgresso(manga, chapterId, chapterNum, source) {
 
 // ── DB ────────────────────────────────────────────────────────────────────────
 async function dbSaveHistory(manga, chapterId, chapterNum) {
+  if (!isLoggedIn()) return;
   try {
-    await fetch(`${API}/historico/salvar`,{method:'POST',headers:{'Content-Type':'application/json'},
+    await authFetch(`${API}/historico/salvar`,{method:'POST',
       body:JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
         manga_source:manga.source||'',chapter_id:chapterId,chapter_num:chapterNum,manga_data:manga})});
   } catch {}
 }
 async function dbSaveFav(manga) {
+  if (!isLoggedIn()) return;
   try {
-    await fetch(`${API}/favoritos/salvar`,{method:'POST',headers:{'Content-Type':'application/json'},
+    await authFetch(`${API}/favoritos/salvar`,{method:'POST',
       body:JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
         manga_source:manga.source||'',manga_data:manga})});
   } catch {}
 }
 async function dbRemoveFav(mangaId) {
+  if (!isLoggedIn()) return;
   try {
-    await fetch(`${API}/favoritos/remover`,{method:'POST',headers:{'Content-Type':'application/json'},
+    await authFetch(`${API}/favoritos/remover`,{method:'POST',
       body:JSON.stringify({manga_id:mangaId})});
   } catch {}
 }
 async function dbLoadHistory() {
-  try { const r=await fetch(`${API}/historico`); const d=await r.json(); return d.historico||[]; } catch { return []; }
+  if (!isLoggedIn()) return [];
+  try { const r=await authFetch(`${API}/historico`); const d=await r.json(); return d.historico||[]; } catch { return []; }
 }
 async function dbLoadFavorites() {
-  try { const r=await fetch(`${API}/favoritos`); const d=await r.json(); return d.favoritos||[]; } catch { return []; }
+  if (!isLoggedIn()) return [];
+  try { const r=await authFetch(`${API}/favoritos`); const d=await r.json(); return d.favoritos||[]; } catch { return []; }
 }
 
 // ── HOME DATA ─────────────────────────────────────────────────────────────────
@@ -1889,11 +2090,12 @@ async function checkNewChapters() {
     } catch {}
   }));
   // Salva seen atualizado no Supabase em background
-  fetch(`${API}/notif/salvar`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ seen })
-  }).catch(() => {});
+  if (isLoggedIn()) {
+    authFetch(`${API}/notif/salvar`, {
+      method: 'POST',
+      body: JSON.stringify({ seen })
+    }).catch(() => {});
+  }
   if (news.length) showNotifToast(news);
 }
 
