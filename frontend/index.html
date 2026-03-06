@@ -1355,7 +1355,7 @@ async function dbSaveProgresso(manga, chapterId, chapterNum, source) {
   const prog = await _getProgresso();
   if (!prog[manga.id]) prog[manga.id] = { last: {}, read: {} };
   prog[manga.id].last = { id: chapterId, num: chapterNum, source };
-  prog[manga.id].read[chapterId] = true;
+  prog[manga.id].read[String(chapterId)] = true; // garante string como chave
 
   // Background — não bloqueia a UI
   fetch(`${API}/progresso/salvar`, {
@@ -1367,8 +1367,8 @@ async function dbSaveProgresso(manga, chapterId, chapterNum, source) {
       manga_cover:      manga.cover || '',
       manga_source:     manga.source || '',
       manga_data:       manga,
-      last_chapter_id:  chapterId,
-      last_chapter_num: chapterNum,
+      last_chapter_id:  String(chapterId),
+      last_chapter_num: String(chapterNum),
       last_chapter_src: source,
       read_chapters:    prog[manga.id].read
     })
@@ -1650,7 +1650,7 @@ async function loadChapters() {
     const p = prog[currentManga.id] || { read: {}, last: null };
     const read = p.read;
     const last = p.last;
-    const readCount = data.chapters.filter(c => read[c.id]).length;
+    const readCount = data.chapters.filter(c => read[String(c.id)]).length;
     const totalCount = data.chapters.length;
     // Progresso de leitura
     const progressPct = totalCount > 0 ? Math.round((readCount/totalCount)*100) : 0;
@@ -1677,7 +1677,7 @@ async function loadChapters() {
       progText.textContent = '';
     }
     list.innerHTML = data.chapters.map(c => `
-      <div class="chapter-item ${read[c.id]?'read':''}"
+      <div class="chapter-item ${read[String(c.id)]?'read':''}"
            onclick="openChapter('${c.id}','${c.chapter}','${c.source||currentManga.source}')">
         <span class="chapter-num">CAP ${c.chapter}</span>
         <span class="chapter-title-text">${c.title||''}</span>
@@ -1705,6 +1705,10 @@ async function openChapter(id, num, source) {
   document.getElementById('pages-container').innerHTML = '<div class="loader" style="color:var(--muted);padding:5rem">CARREGANDO DADOS</div>';
   document.getElementById('reader-end-nav').style.display = 'none';
   showPage('reader');
+  // Salva estado do leitor na URL para sobreviver ao F5
+  const readerState = { mid: currentManga?.id, cid: id, num, src: lastReaderSource,
+    manga: currentManga };
+  history.replaceState(readerState, '', '#reader');
   scrollTo(0,0);
   if (currentManga) {
     await dbSaveProgresso(currentManga, id, num, source||currentManga.source);
@@ -1917,15 +1921,35 @@ function showNotifToast(items) {
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
-(function restorePageFromHash() {
+(async function restorePageFromHash() {
   const hash = location.hash.replace('#','');
   const valid = ['home','explore','favorites','history','results'];
+
+  // Tenta restaurar o leitor se estava lendo ao recarregar
+  if (hash === 'reader') {
+    const st = history.state;
+    if (st && st.cid && st.manga) {
+      currentManga = st.manga;
+      // Carrega capítulos em background para ter a lista disponível
+      try {
+        const slug = currentManga.slug||'';
+        const lang = document.getElementById('chapter-lang')?.value||'pt-br';
+        const r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`);
+        const d = await r.json();
+        currentChapterList = d.chapters||[];
+      } catch { currentChapterList = []; }
+      openChapter(st.cid, st.num, st.src);
+      loadHomeData();
+      setTimeout(checkNewChapters, 5000);
+      return;
+    }
+  }
+
   if (hash && valid.includes(hash)) showPage(hash);
   else showPage('home');
+  loadHomeData();
+  setTimeout(checkNewChapters, 5000);
 })();
-loadHomeData();
-// Checa novos capítulos 5s após carregar (para não atrasar o início)
-setTimeout(checkNewChapters, 5000);
 </script>
 </body>
 </html>
