@@ -319,6 +319,10 @@ header::after {
 .chapter-item:hover { border-color: rgba(0,245,255,0.3); background: var(--surface2); }
 .chapter-item:hover::before { opacity: 1; }
 .chapter-item.read { opacity: 0.38; }
+.chapter-item.current { border-color: var(--cyan) !important; background: rgba(0,245,255,0.07) !important; opacity: 1 !important; }
+.chapter-item.current::before { opacity: 1 !important; }
+.chapter-item.current .chapter-num { color: var(--cyan); text-shadow: 0 0 10px rgba(0,245,255,0.5); }
+.chapter-item.current::after { content: '▶ ATUAL'; position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; color: var(--cyan); letter-spacing: 2px; opacity: 0.8; }
 .chapter-num { font-family: 'Orbitron', monospace; font-size: 0.75rem; color: var(--cyan); letter-spacing: 1px; min-width: 80px; font-weight: 700; }
 .chapter-title-text { font-size: 0.82rem; color: var(--muted); flex: 1; margin: 0 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chapter-lang { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); border: 1px solid var(--border); padding: 0.12rem 0.45rem; border-radius: 2px; letter-spacing: 1px; }
@@ -333,7 +337,8 @@ header::after {
 .reader-nav button.nav-chapter { background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(123,47,255,0.15)); border-color: var(--cyan); color: var(--cyan); font-weight: 700; }
 .reader-nav button.nav-chapter:hover { background: var(--cyan); color: #000; }
 .reader-nav button.nav-chapter:disabled { background: var(--surface); border-color: var(--border); color: var(--muted); }
-.reader-title { font-family: 'Orbitron', monospace; font-size: 0.75rem; letter-spacing: 2px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--cyan); opacity: 0.8; }
+.reader-title { font-family: 'Orbitron', monospace; font-size: 0.75rem; letter-spacing: 2px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); opacity: 0.9; }
+.reader-chapter-badge { display: inline-block; background: rgba(0,245,255,0.15); border: 1px solid var(--cyan); color: var(--cyan); font-family: 'Orbitron', monospace; font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; padding: 0.25rem 0.7rem; border-radius: 3px; white-space: nowrap; flex-shrink: 0; text-shadow: 0 0 10px rgba(0,245,255,0.4); box-shadow: 0 0 10px rgba(0,245,255,0.1); }
 .reader-progress { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--muted); white-space: nowrap; }
 .pages-container { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 1rem 0; }
 .reader-page-img { max-width: min(900px, 100vw); width: 100%; display: block; object-fit: contain; }
@@ -401,7 +406,8 @@ header::after {
 
   .reader-nav { padding: 0.5rem 0.8rem; gap: 0.4rem; }
   .reader-nav button { padding: 0.35rem 0.6rem; font-size: 0.6rem; }
-  .reader-title { font-size: 0.65rem; }
+  .reader-title { font-size: 0.6rem; max-width: 90px; }
+  .reader-chapter-badge { font-size: 0.65rem; padding: 0.2rem 0.5rem; }
 
   .chapters-list { max-height: 45vh; }
   .chapter-title-text { display: none; }
@@ -663,6 +669,7 @@ header::after {
     <button onclick="goBackToDetail()">← SAIR</button>
     <button class="nav-chapter" id="btn-prev" onclick="navChapter(-1)" disabled>‹ ANT</button>
     <div class="reader-title" id="reader-title"></div>
+    <span class="reader-chapter-badge" id="reader-chapter-badge"></span>
     <span class="reader-progress" id="reader-progress"></span>
     <button class="nav-chapter" id="btn-next" onclick="navChapter(1)" disabled>PRX ›</button>
     <button onclick="scrollTo(0,0)">↑</button>
@@ -1223,24 +1230,31 @@ async function loadChapters() {
       progBar.querySelector('.prog-fill').style.width=progressPct+'%';
       progText.textContent=`${readCount}/${totalCount} (${progressPct}%)`;
     } else { progBar.style.display='none'; }
-    list.innerHTML=data.chapters.map(c=>`
-      <div class="chapter-item ${read[String(c.id)]?'read':''}"
+    list.innerHTML=data.chapters.map(c=>{
+      const isRead=!!read[String(c.id)];
+      const isCurrent=currentReadingChapterId&&String(c.id)===currentReadingChapterId;
+      let cls=isCurrent?'current':(isRead?'read':'');
+      return `<div class="chapter-item ${cls}"
            onclick="openChapter('${c.id}','${c.chapter}','${c.source||currentManga.source}')">
         <span class="chapter-num">CAP ${c.chapter}</span>
         <span class="chapter-title-text">${c.title||''}</span>
         <span class="chapter-lang">${c.lang}</span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   } catch { list.innerHTML='<div class="loader">ERRO AO CARREGAR</div>'; }
 }
 
 // ── READER ────────────────────────────────────────────────────────────────────
-let currentChapterList=[], currentChapterIndex=-1, lastReaderChapterId=null, lastReaderSource=null;
+let currentChapterList=[], currentChapterIndex=-1, lastReaderChapterId=null, lastReaderSource=null, currentReadingChapterId=null;
 
 async function openChapter(id,num,source) {
   lastReaderChapterId=id; lastReaderSource=source||currentManga?.source||'mangadex';
+  currentReadingChapterId=String(id);
   const idx=currentChapterList.findIndex(c=>c.id===id); currentChapterIndex=idx;
   updateNavButtons();
-  document.getElementById('reader-title').textContent=`${currentManga?.title||''} // CAP. ${num}`;
+  document.getElementById('reader-title').textContent=`${currentManga?.title||''}`;
+  const badge=document.getElementById('reader-chapter-badge');
+  if(badge) badge.textContent=`CAP. ${num}`;
   document.getElementById('reader-progress').textContent='';
   document.getElementById('pages-container').innerHTML='<div class="loader" style="color:var(--muted);padding:5rem">CARREGANDO</div>';
   document.getElementById('reader-end-nav').style.display='none';
@@ -1301,7 +1315,7 @@ function updateNavButtons() {
   if(endNext)endNext.disabled=currentChapterIndex>=currentChapterList.length-1;
   if(endPrev)endPrev.disabled=currentChapterIndex<=0;
 }
-function navChapter(dir){const newIdx=currentChapterIndex+dir;if(newIdx<0||newIdx>=currentChapterList.length)return;const c=currentChapterList[newIdx];openChapter(c.id,c.chapter,c.source||currentManga?.source);}
+function navChapter(dir){const newIdx=currentChapterIndex+dir;if(newIdx<0||newIdx>=currentChapterList.length)return;const c=currentChapterList[newIdx];openChapter(c.id,c.chapter,c.source||currentManga?.source);const badge=document.getElementById('reader-chapter-badge');if(badge)badge.textContent=`CAP. ${c.chapter}`;}
 function goBackToDetail(){showPage('detail');}
 
 // ── FAVORITES ─────────────────────────────────────────────────────────────────
