@@ -835,6 +835,16 @@ renderGenrePills('home-genre-pills');
 let currentManga = null, allResults = [];
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
+// ── MANGA REGISTRY ────────────────────────────────────────────────────────────
+const _mangaRegistry = {};
+let _mangaRegistryCounter = 0;
+function regManga(manga) {
+  const key = 'mg_' + (++_mangaRegistryCounter);
+  _mangaRegistry[key] = manga;
+  return key;
+}
+function getManga(key) { return _mangaRegistry[key] || null; }
+
 let _session = null;
 
 function authHeaders() {
@@ -1038,9 +1048,9 @@ function renderReleases(releases) {
   if (!releases.length) { el.innerHTML='<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem">// NENHUM LANÇAMENTO</div>'; return; }
   el.innerHTML=releases.map(r=>{
     const mangaObj={id:r.manga_id,title:r.manga_title,cover:r.cover||'',source:'mangadex',status:'',tags:[],description:''};
-    const safeM=JSON.stringify(mangaObj).replace(/"/g,'&quot;');
+    const mkey=regManga(mangaObj);
     const langLabel=r.lang==='pt-br'?'PT-BR':r.lang==='pt'?'PT':r.lang.toUpperCase();
-    return `<div class="release-card" onclick='openManga(${safeM})'>
+    return `<div class="release-card" onclick="openManga(getManga('${mkey}'))">
       <img src="${r.cover?proxyImg(r.cover):''}" alt="${r.manga_title}" loading="lazy" onerror="this.style.background='var(--surface2)';this.style.minWidth='65px'">
       <div class="release-card-info">
         <div class="release-card-manga">${r.manga_title}</div>
@@ -1056,8 +1066,8 @@ function renderPopular(items) {
   const el=document.getElementById('popular-scroll');
   if (!items.length) { el.innerHTML='<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem">// ERRO</div>'; return; }
   el.innerHTML=items.map(m=>{
-    const safeM=JSON.stringify(m).replace(/"/g,'&quot;');
-    return `<div class="popular-card" onclick='openManga(${safeM})'>
+    const mkey=regManga(m);
+    return `<div class="popular-card" onclick="openManga(getManga('${mkey}'))">
       <img src="${proxyImg(m.cover)}" alt="${m.title}" loading="lazy" onerror="this.style.background='var(--surface2)'">
       <div class="popular-card-info"><div class="popular-card-title">${m.title}</div></div>
     </div>`;
@@ -1144,17 +1154,17 @@ function renderGrid(items,containerId,append=false) {
   const grid=document.getElementById(containerId);
   if (!items||!items.length) { if(!append) grid.innerHTML='<div class="loader">NENHUM RESULTADO</div>'; return; }
   const html=items.map(m=>{
-    const safeM=JSON.stringify(m).replace(/"/g,'&quot;');
+    const mkey=regManga(m);
     const sourceLabel=m.source==='mangadex'?'MANGADEX':m.source==='comick'?'COMICK':'MANGAZORD';
     const scoreHTML=m.score?`<div class="card-score">★ ${parseFloat(m.score).toFixed(1)}</div>`:'';
     const tipoHTML=m.tipo?`<div class="card-tipo ${m.tipo}">${m.tipo.toUpperCase()}</div>`:'';
     const tagsHTML=(m.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('');
-    return `<div class="manga-card" onclick='openManga(${safeM})'>
-      <img src="${proxyImg(m.cover)}" alt="${m.title}" loading="lazy" onerror="this.style.background='var(--surface2)'">
+    return `<div class="manga-card" onclick="openManga(getManga('${mkey}'))">
+      <img src="${proxyImg(m.cover)}" alt="${sanitize(m.title)}" loading="lazy" onerror="this.style.background='var(--surface2)'">
       <div class="card-source ${m.source}">${sourceLabel}</div>
       ${scoreHTML}${tipoHTML}
       <div class="manga-card-info">
-        <div class="manga-card-title">${m.title}</div>
+        <div class="manga-card-title">${sanitize(m.title)}</div>
         <div class="manga-card-status">${translateStatus(m.status)}</div>
         <div class="manga-card-tags">${tagsHTML}</div>
       </div>
@@ -1164,9 +1174,11 @@ function renderGrid(items,containerId,append=false) {
 }
 
 function translateStatus(s) { return {ongoing:'EM ANDAMENTO',completed:'COMPLETO',hiatus:'HIATO',cancelled:'CANCELADO'}[s]||s||''; }
+function sanitize(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── OPEN MANGA ────────────────────────────────────────────────────────────────
 async function openManga(manga) {
+  if (!manga) { console.error('openManga: manga é null'); return; }
   currentManga=manga;
   document.getElementById('detail-title').textContent=manga.title;
   document.getElementById('detail-desc').textContent=manga.description||'Sem descrição.';
@@ -1360,10 +1372,10 @@ async function renderHistory(){
   if(!dbHist.length){list.innerHTML='<div class="empty-msg"><span>VAZIO</span>Nenhum histórico ainda.</div>';return;}
   list.innerHTML=dbHist.map(h=>{
     const manga=h.manga_data||{id:h.manga_id,title:h.manga_title,cover:h.manga_cover,source:h.manga_source};
-    const safeM=JSON.stringify(manga).replace(/"/g,'&quot;');
+    const mkey=regManga(manga);
     const date=new Date(h.lido_em).toLocaleDateString('pt-BR');
     const srcColor=h.manga_source==='comick'?'#80b3ff':h.manga_source==='mangazord'?'#00ff9d':'var(--cyan)';
-    return `<div class="chapter-item" onclick='openManga(${safeM})'>
+    return `<div class="chapter-item" onclick="openManga(getManga('${mkey}'))">
       <img src="${proxyImg(h.manga_cover)}" style="width:36px;height:50px;object-fit:cover;border-radius:2px;margin-right:1rem;border:1px solid var(--border)" onerror="this.style.display='none'">
       <div style="flex:1"><div style="font-weight:700;font-size:0.85rem">${h.manga_title}</div>
       <div style="font-family:'Share Tech Mono',monospace;color:var(--muted);font-size:0.62rem;margin-top:0.2rem">CAP. ${h.chapter_num} // ${date}</div></div>
