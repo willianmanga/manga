@@ -21,8 +21,6 @@
   --text:     #e8e8f0;
   --muted:    #4a4a6a;
   --border:   #1e1e3a;
-  --glow-c:   rgba(0,245,255,0.15);
-  --glow-p:   rgba(255,0,110,0.15);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,29 +29,15 @@
   from { opacity: 0; transform: translateX(30px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-
-.auth-tab {
-  background: none; border: none; border-bottom: 2px solid transparent;
-  color: var(--muted); cursor: pointer; padding: 0.6rem 1.2rem;
-  font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; letter-spacing: 2px;
-  transition: all 0.2s;
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.auth-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
-.auth-input {
-  background: var(--surface2); border: 1px solid var(--border); border-radius: 4px;
-  color: var(--text); font-family: 'Rajdhani', sans-serif; font-size: 0.95rem;
-  padding: 0.65rem 0.9rem; outline: none; transition: border-color 0.2s;
+@keyframes dots {
+  0%,20%  { content: '.'; }
+  40%,60% { content: '..'; }
+  80%,100%{ content: '...'; }
 }
-.auth-input:focus { border-color: var(--cyan); }
-.admin-user-row {
-  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 4px; padding: 0.7rem 1rem;
-}
-.admin-user-name { font-weight: 700; font-size: 0.9rem; flex: 1; min-width: 120px; }
-.admin-user-meta { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); }
-.admin-user-status { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; }
-.admin-user-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
 html { scroll-behavior: smooth; }
 
@@ -65,20 +49,7 @@ body {
   overflow-x: hidden;
 }
 
-.anime-bg {
-  position: fixed; inset: 0; z-index: 0;
-  pointer-events: none; overflow: hidden;
-}
-.anime-bg svg {
-  position: absolute;
-  opacity: 0.028;
-  filter: blur(0.5px);
-}
-.anime-bg .wm1 { width: 420px; top: -40px; right: -60px; transform: rotate(8deg); opacity: 0.032; }
-.anime-bg .wm2 { width: 380px; bottom: 10%; left: -80px; transform: rotate(-6deg) scaleX(-1); opacity: 0.025; }
-.anime-bg .wm3 { width: 300px; top: 35%; right: 15%; transform: rotate(3deg); opacity: 0.020; }
-.anime-bg .wm4 { width: 260px; bottom: 5%; right: 5%; transform: rotate(-10deg); opacity: 0.022; }
-
+/* ── SCANLINES + AMBIENT ─── */
 body::before {
   content: '';
   position: fixed; inset: 0; z-index: 0;
@@ -97,9 +68,18 @@ body::after {
   pointer-events: none;
 }
 
+/* ── ANIME WATERMARK ─── */
+.anime-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.anime-bg svg { position: absolute; opacity: 0.028; filter: blur(0.5px); }
+.anime-bg .wm1 { width: 420px; top: -40px; right: -60px; transform: rotate(8deg); opacity: 0.032; }
+.anime-bg .wm2 { width: 380px; bottom: 10%; left: -80px; transform: rotate(-6deg) scaleX(-1); opacity: 0.025; }
+.anime-bg .wm3 { width: 300px; top: 35%; right: 15%; transform: rotate(3deg); opacity: 0.020; }
+.anime-bg .wm4 { width: 260px; bottom: 5%; right: 5%; transform: rotate(-10deg); opacity: 0.022; }
+
+/* ── HEADER DESKTOP ─── */
 header {
   position: sticky; top: 0; z-index: 200;
-  background: rgba(5,5,8,0.92);
+  background: rgba(5,5,8,0.95);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(20px) saturate(180%);
   padding: 0 2rem;
@@ -115,10 +95,10 @@ header::after {
 
 .logo {
   font-family: 'Orbitron', monospace; font-weight: 900; font-size: 1.4rem;
-  letter-spacing: 4px; cursor: pointer; white-space: nowrap; position: relative;
+  letter-spacing: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
 }
-.logo-manga { color: var(--cyan); text-shadow: 0 0 20px rgba(0,245,255,0.6), 0 0 40px rgba(0,245,255,0.2); }
-.logo-nexus { color: var(--pink); text-shadow: 0 0 20px rgba(255,0,110,0.6), 0 0 40px rgba(255,0,110,0.2); }
+.logo-manga { color: var(--cyan); text-shadow: 0 0 20px rgba(0,245,255,0.6); }
+.logo-nexus { color: var(--pink); text-shadow: 0 0 20px rgba(255,0,110,0.6); }
 .logo-tag { display: block; font-family: 'Share Tech Mono', monospace; font-size: 0.5rem; letter-spacing: 3px; color: var(--muted); margin-top: 1px; }
 
 .search-bar {
@@ -127,61 +107,129 @@ header::after {
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 .search-bar:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan), 0 0 20px rgba(0,245,255,0.1); }
-.search-bar input {
-  flex: 1; background: var(--surface); border: none; color: var(--text);
-  padding: 0 1rem; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem;
-  font-weight: 600; outline: none; letter-spacing: 0.5px;
-}
+.search-bar input { flex: 1; background: var(--surface); border: none; color: var(--text); padding: 0 1rem; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; font-weight: 600; outline: none; }
 .search-bar input::placeholder { color: var(--muted); }
-.search-bar select {
-  background: var(--surface2); border: none; border-left: 1px solid var(--border);
-  color: var(--muted); padding: 0 0.6rem; font-family: 'Share Tech Mono', monospace;
-  font-size: 0.75rem; outline: none; cursor: pointer;
-}
-.search-bar button {
-  background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; color: #000;
-  padding: 0 1.4rem; font-family: 'Orbitron', monospace; font-weight: 700;
-  font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; transition: opacity 0.2s;
-}
+.search-bar select { background: var(--surface2); border: none; border-left: 1px solid var(--border); color: var(--muted); padding: 0 0.6rem; font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; outline: none; cursor: pointer; }
+.search-bar button { background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; color: #000; padding: 0 1.4rem; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; transition: opacity 0.2s; }
 .search-bar button:hover { opacity: 0.85; }
 
-.nav-btns { display: flex; gap: 0.4rem; margin-left: auto; }
-.nav-btn {
-  background: transparent; border: 1px solid var(--border); color: var(--muted);
-  padding: 0.4rem 0.9rem; font-family: 'Orbitron', monospace; font-size: 0.62rem;
-  letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all 0.2s; white-space: nowrap;
-}
+.nav-btns { display: flex; gap: 0.4rem; margin-left: auto; flex-shrink: 0; }
+.nav-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 0.9rem; font-family: 'Orbitron', monospace; font-size: 0.62rem; letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all 0.2s; white-space: nowrap; }
 .nav-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 10px rgba(0,245,255,0.15); }
 
+#user-label { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--cyan); }
+
+/* ── MOBILE HEADER ─── */
+.mobile-header {
+  display: none;
+  position: sticky; top: 0; z-index: 200;
+  background: rgba(5,5,8,0.97);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  flex-direction: column;
+}
+.mobile-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), var(--pink), transparent);
+  opacity: 0.6;
+}
+.mobile-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1rem; height: 54px; gap: 0.8rem;
+}
+.mobile-logo { font-family: 'Orbitron', monospace; font-weight: 900; font-size: 1.1rem; letter-spacing: 3px; cursor: pointer; flex-shrink: 0; }
+.mobile-search-row {
+  display: flex; gap: 0; flex: 1;
+  border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.mobile-search-row:focus-within { border-color: var(--cyan); }
+.mobile-search-row input { flex: 1; background: var(--surface); border: none; color: var(--text); padding: 0 0.7rem; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; font-weight: 600; outline: none; min-width: 0; }
+.mobile-search-row input::placeholder { color: var(--muted); }
+.mobile-search-row button { background: var(--cyan); border: none; color: #000; padding: 0 0.8rem; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.6rem; cursor: pointer; white-space: nowrap; }
+.mobile-menu-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 0.6rem; border-radius: 3px; cursor: pointer; font-size: 1rem; flex-shrink: 0; transition: all 0.2s; }
+.mobile-menu-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ── BOTTOM NAV (mobile) ─── */
+.bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(5,5,8,0.97);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+}
+.bottom-nav-inner { display: flex; justify-content: space-around; align-items: center; }
+.bnav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+  background: transparent; border: none; color: var(--muted);
+  padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px;
+  transition: all 0.15s; font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 1px;
+}
+.bnav-btn .bnav-icon { font-size: 1.2rem; line-height: 1; }
+.bnav-btn:hover, .bnav-btn.active { color: var(--cyan); }
+.bnav-btn.active .bnav-icon { filter: drop-shadow(0 0 6px var(--cyan)); }
+
+/* ── MOBILE DRAWER MENU ─── */
+.mobile-drawer {
+  display: none;
+  position: fixed; top: 54px; left: 0; right: 0; bottom: 0; z-index: 190;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+}
+.mobile-drawer.open { display: block; }
+.mobile-drawer-panel {
+  position: absolute; top: 0; right: 0;
+  width: min(280px, 85vw);
+  height: 100%;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  padding: 1.5rem 1rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  animation: slideIn 0.2s ease;
+}
+.drawer-item {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  padding: 0.75rem 1rem; border-radius: 4px; cursor: pointer;
+  font-family: 'Orbitron', monospace; font-size: 0.65rem; letter-spacing: 2px;
+  text-align: left; transition: all 0.15s; width: 100%;
+}
+.drawer-item:hover { border-color: var(--cyan); color: var(--cyan); }
+.drawer-item.gold { color: var(--gold); border-color: rgba(255,215,0,0.3); }
+.drawer-item.pink { color: var(--pink); border-color: rgba(255,0,110,0.3); }
+.drawer-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+.drawer-user { font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; color: var(--cyan); padding: 0.5rem 0; }
+
+/* ── PAGES ─── */
 .page { display: none; padding: 2rem; max-width: 1440px; margin: 0 auto; position: relative; z-index: 1; }
 .page.active { display: block; }
 
+/* ── SECTION TITLE ─── */
 .section-title {
   font-family: 'Orbitron', monospace; font-size: 0.8rem; font-weight: 700;
   letter-spacing: 4px; color: var(--muted); margin-bottom: 1.5rem;
   display: flex; align-items: center; gap: 1rem; text-transform: uppercase;
 }
-.section-title::before {
-  content: ''; display: inline-block; width: 3px; height: 1.2em;
-  background: linear-gradient(180deg, var(--cyan), var(--pink)); border-radius: 2px; box-shadow: 0 0 8px var(--cyan);
-}
+.section-title::before { content: ''; display: inline-block; width: 3px; height: 1.2em; background: linear-gradient(180deg, var(--cyan), var(--pink)); border-radius: 2px; box-shadow: 0 0 8px var(--cyan); }
 .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
 
+/* ── HOME HERO ─── */
 .home-hero { text-align: center; padding: 3.5rem 0 2.5rem; position: relative; }
 .hero-eyebrow { font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; letter-spacing: 6px; color: var(--cyan); text-shadow: 0 0 10px rgba(0,245,255,0.4); margin-bottom: 1rem; opacity: 0.8; }
 .hero-title { font-family: 'Orbitron', monospace; font-size: clamp(2.8rem, 8vw, 6.5rem); font-weight: 900; letter-spacing: 4px; line-height: 1; margin-bottom: 0.3rem; }
 .hero-title .line1 { display: block; color: transparent; -webkit-text-stroke: 1px rgba(0,245,255,0.5); letter-spacing: 8px; }
 .hero-title .line2 { display: block; background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 50%, var(--pink) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 30px rgba(0,245,255,0.3)); }
 .hero-sub { font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; color: var(--muted); letter-spacing: 2px; margin: 1.2rem auto 2.5rem; max-width: 420px; line-height: 1.8; }
-
 .source-badges { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 2.5rem; flex-wrap: wrap; }
 .sbadge { padding: 0.3rem 0.9rem; border-radius: 2px; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 2px; border: 1px solid; }
 .sbadge-c { border-color: rgba(0,245,255,0.4); color: var(--cyan); background: rgba(0,245,255,0.05); }
 .sbadge-p { border-color: rgba(255,0,110,0.4); color: var(--pink); background: rgba(255,0,110,0.05); }
 .sbadge-g { border-color: rgba(255,215,0,0.4); color: var(--gold); background: rgba(255,215,0,0.05); }
 
-.big-search { display: flex; max-width: 600px; margin: 0 auto; border: 1px solid var(--cyan); border-radius: 4px; overflow: hidden; box-shadow: 0 0 30px rgba(0,245,255,0.1), inset 0 0 30px rgba(0,245,255,0.02); }
-.big-search input { flex: 1; background: rgba(0,245,255,0.03); border: none; color: var(--text); padding: 1rem 1.4rem; font-family: 'Rajdhani', sans-serif; font-size: 1.05rem; font-weight: 600; outline: none; letter-spacing: 0.5px; }
+.big-search { display: flex; max-width: 600px; margin: 0 auto; border: 1px solid var(--cyan); border-radius: 4px; overflow: hidden; box-shadow: 0 0 30px rgba(0,245,255,0.1); }
+.big-search input { flex: 1; background: rgba(0,245,255,0.03); border: none; color: var(--text); padding: 1rem 1.4rem; font-family: 'Rajdhani', sans-serif; font-size: 1.05rem; font-weight: 600; outline: none; }
 .big-search input::placeholder { color: var(--muted); }
 .big-search button { background: var(--cyan); border: none; color: #000; padding: 1rem 2rem; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.72rem; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
 .big-search button:hover { background: white; box-shadow: 0 0 20px var(--cyan); }
@@ -192,27 +240,26 @@ header::after {
 .genre-pill { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.25rem 0.75rem; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.15s; user-select: none; }
 .genre-pill:hover { border-color: var(--cyan); color: var(--cyan); }
 .genre-pill.active { border-color: var(--pink); color: var(--pink); background: rgba(255,0,110,0.08); box-shadow: 0 0 8px rgba(255,0,110,0.2); }
+.filter-actions { display: flex; gap: 0.6rem; margin-top: 0.9rem; align-items: center; flex-wrap: wrap; }
 
-.filter-actions { display: flex; gap: 0.6rem; margin-top: 0.9rem; align-items: center; }
 .btn-primary { background: linear-gradient(135deg, var(--pink), var(--purple)); border: none; color: white; padding: 0.5rem 1.3rem; font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.62rem; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: opacity 0.2s; }
 .btn-primary:hover { opacity: 0.85; }
 .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 1rem; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
 .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
 
+/* ── HOME SECTIONS ─── */
 .home-section { margin-top: 3rem; }
 .h-scroll { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.8rem; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 .h-scroll::-webkit-scrollbar { height: 3px; }
 .h-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .popular-card { cursor: pointer; flex: 0 0 145px; width: 145px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; position: relative; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
-.popular-card:hover { border-color: var(--cyan); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,245,255,0.12), 0 0 0 1px rgba(0,245,255,0.1); }
-.popular-card::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(0,245,255,0.08) 0%, transparent 40%); opacity: 0; transition: opacity 0.2s; }
-.popular-card:hover::before { opacity: 1; }
+.popular-card:hover { border-color: var(--cyan); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,245,255,0.12); }
 .popular-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: var(--surface2); }
-.popular-card-info { padding: 0.5rem 0.6rem; position: relative; z-index: 2; }
-.popular-card-title { font-size: 0.75rem; font-weight: 700; line-height: 1.3; letter-spacing: 0.3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.popular-card-info { padding: 0.5rem 0.6rem; }
+.popular-card-title { font-size: 0.75rem; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-.release-card { cursor: pointer; flex: 0 0 240px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; display: flex; position: relative; transition: all 0.2s; }
+.release-card { cursor: pointer; flex: 0 0 240px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; display: flex; transition: all 0.2s; }
 .release-card:hover { border-color: var(--pink); box-shadow: 0 0 20px rgba(255,0,110,0.1); transform: translateY(-3px); }
 .release-card img { width: 65px; min-width: 65px; object-fit: cover; background: var(--surface2); }
 .release-card-info { padding: 0.7rem 0.75rem; flex: 1; min-width: 0; }
@@ -220,14 +267,16 @@ header::after {
 .release-card-ch { font-family: 'Orbitron', monospace; font-size: 0.65rem; color: var(--pink); letter-spacing: 1px; }
 .release-card-lang { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; text-transform: uppercase; }
 
+/* ── TABS ─── */
 .tabs-row { display: flex; gap: 0.4rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
 .tab-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 1rem; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all 0.15s; }
 .tab-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 .tab-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0,245,255,0.06); box-shadow: 0 0 12px rgba(0,245,255,0.1); }
 
+/* ── MANGA GRID ─── */
 .manga-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px,1fr)); gap: 1rem; }
 .manga-card { cursor: pointer; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; position: relative; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
-.manga-card:hover { transform: translateY(-5px); border-color: var(--cyan); box-shadow: 0 10px 25px rgba(0,245,255,0.1), 0 0 0 1px rgba(0,245,255,0.08); }
+.manga-card:hover { transform: translateY(-5px); border-color: var(--cyan); box-shadow: 0 10px 25px rgba(0,245,255,0.1); }
 .manga-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: var(--surface2); }
 .card-source { position: absolute; top: 6px; left: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.58rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 2px; backdrop-filter: blur(8px); letter-spacing: 1px; border: 1px solid; }
 .card-source.mangadex { color: var(--cyan); border-color: rgba(0,245,255,0.4); background: rgba(0,245,255,0.1); }
@@ -239,11 +288,12 @@ header::after {
 .card-tipo.Manhwa { color: #99ffcc; }
 .card-tipo.Manhua { color: #99d6ff; }
 .manga-card-info { padding: 0.65rem; }
-.manga-card-title { font-size: 0.8rem; font-weight: 700; line-height: 1.35; letter-spacing: 0.2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.manga-card-title { font-size: 0.8rem; font-weight: 700; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .manga-card-status { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; letter-spacing: 1px; }
 .manga-card-tags { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-top: 0.4rem; }
-.tag { font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; padding: 0.1rem 0.4rem; border-radius: 2px; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); letter-spacing: 0.5px; }
+.tag { font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; padding: 0.1rem 0.4rem; border-radius: 2px; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
 
+/* ── DETAIL ─── */
 .detail-header { display: flex; gap: 2.5rem; margin-bottom: 2.5rem; align-items: flex-start; }
 .detail-cover-wrap { width: 200px; min-width: 200px; position: relative; }
 .detail-cover { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 4px; background: var(--surface2); border: 1px solid var(--border); display: block; }
@@ -273,15 +323,16 @@ header::after {
 .chapter-title-text { font-size: 0.82rem; color: var(--muted); flex: 1; margin: 0 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chapter-lang { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); border: 1px solid var(--border); padding: 0.12rem 0.45rem; border-radius: 2px; letter-spacing: 1px; }
 
+/* ── READER ─── */
 #reader-page { background: #000; min-height: 100vh; padding: 0; max-width: 100%; }
 .reader-nav { position: sticky; top: 0; z-index: 50; background: rgba(0,0,0,0.96); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1.5rem; backdrop-filter: blur(20px); flex-wrap: wrap; }
 .reader-nav::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--cyan), transparent); opacity: 0.4; }
 .reader-nav button { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.42rem 0.85rem; font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
 .reader-nav button:hover { border-color: var(--cyan); color: var(--cyan); }
 .reader-nav button:disabled { opacity: 0.25; cursor: not-allowed; }
-.reader-nav button.nav-chapter { background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(123,47,255,0.15)); border-color: var(--cyan); color: var(--cyan); font-weight: 700; box-shadow: 0 0 12px rgba(0,245,255,0.08); }
-.reader-nav button.nav-chapter:hover { background: var(--cyan); color: #000; box-shadow: 0 0 20px rgba(0,245,255,0.3); }
-.reader-nav button.nav-chapter:disabled { background: var(--surface); border-color: var(--border); color: var(--muted); box-shadow: none; }
+.reader-nav button.nav-chapter { background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(123,47,255,0.15)); border-color: var(--cyan); color: var(--cyan); font-weight: 700; }
+.reader-nav button.nav-chapter:hover { background: var(--cyan); color: #000; }
+.reader-nav button.nav-chapter:disabled { background: var(--surface); border-color: var(--border); color: var(--muted); }
 .reader-title { font-family: 'Orbitron', monospace; font-size: 0.75rem; letter-spacing: 2px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--cyan); opacity: 0.8; }
 .reader-progress { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--muted); white-space: nowrap; }
 .pages-container { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 1rem 0; }
@@ -297,38 +348,80 @@ header::after {
 .btn-end-next { background: linear-gradient(135deg, var(--cyan), var(--purple)); border-color: var(--cyan); color: #000; }
 .btn-end-next:hover { box-shadow: 0 0 25px rgba(0,245,255,0.4); opacity: 0.9; }
 .btn-end-next:disabled { background: var(--surface2); border-color: var(--border); color: var(--muted); box-shadow: none; cursor: not-allowed; }
-.btn-end-back { background: transparent; border-color: transparent; color: var(--muted); font-size: 0.65rem !important; padding: 0.5rem 1rem !important; letter-spacing: 1px !important; }
+.btn-end-back { background: transparent; border-color: transparent; color: var(--muted); font-size: 0.65rem !important; padding: 0.5rem 1rem !important; }
 .btn-end-back:hover { color: var(--text); border-color: var(--border); }
 
+/* ── AUTH MODAL ─── */
+.auth-tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; padding: 0.6rem 1.2rem; font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; letter-spacing: 2px; transition: all 0.2s; }
+.auth-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+.auth-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; padding: 0.65rem 0.9rem; outline: none; transition: border-color 0.2s; width: 100%; }
+.auth-input:focus { border-color: var(--cyan); }
+
+/* ── MISC ─── */
 .loader { text-align: center; padding: 3rem; color: var(--muted); font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; letter-spacing: 3px; }
 .loader::after { content: '...'; animation: dots 1.2s infinite; }
-@keyframes dots { 0%,20%{content:'.';} 40%,60%{content:'..';} 80%,100%{content:'...';} }
 .empty-msg { text-align: center; padding: 4rem; color: var(--muted); }
 .empty-msg span { display: block; font-family: 'Orbitron', monospace; font-size: 1.5rem; letter-spacing: 4px; color: var(--cyan); opacity: 0.3; margin-bottom: 0.5rem; }
-.lang-notice { margin-bottom: 1rem; padding: 0.6rem 1rem; background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.25); border-radius: 3px; font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; color: var(--gold); letter-spacing: 0.5px; }
+.lang-notice { margin-bottom: 1rem; padding: 0.6rem 1rem; background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.25); border-radius: 3px; font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; color: var(--gold); }
+.load-more-btn { display: block; margin: 2rem auto 0; background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.7rem 2rem; font-family: 'Orbitron', monospace; font-size: 0.65rem; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
+.load-more-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.admin-user-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 0.7rem 1rem; }
+.admin-user-name { font-weight: 700; font-size: 0.9rem; flex: 1; min-width: 120px; }
+.admin-user-meta { font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted); }
+.admin-user-status { font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; }
+.admin-user-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
 
-.load-more-btn { display: block; margin: 2rem auto 0; background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.7rem 2rem; font-family: 'Orbitron', monospace; font-size: 0.65rem; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
-.load-more-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 15px rgba(0,245,255,0.1); }
+/* ── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  header { display: none; }
+  .mobile-header { display: flex; }
+  .bottom-nav { display: block; }
 
-@media (max-width: 640px) {
-  header { padding: 0 1rem; gap: 0.7rem; }
-  .search-bar { display: none; }
-  .page { padding: 1rem; }
-  .detail-header { flex-direction: column; }
-  .detail-cover-wrap { width: 140px; }
+  .page {
+    padding: 1rem;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  }
+  #reader-page { padding-bottom: 0; }
+
+  .manga-grid { grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 0.7rem; }
   .hero-title { font-size: clamp(2.2rem,10vw,3.5rem); }
+  .home-hero { padding: 2rem 0 1.5rem; }
+  .hero-sub { font-size: 0.7rem; }
+  .big-search input { padding: 0.8rem 1rem; font-size: 0.95rem; }
+  .big-search button { padding: 0.8rem 1.2rem; font-size: 0.65rem; }
+
+  .detail-header { flex-direction: column; gap: 1.2rem; }
+  .detail-cover-wrap { width: 140px; }
+  .detail-title { font-size: 1.3rem; }
+
+  .reader-nav { padding: 0.5rem 0.8rem; gap: 0.4rem; }
+  .reader-nav button { padding: 0.35rem 0.6rem; font-size: 0.6rem; }
+  .reader-title { font-size: 0.65rem; }
+
+  .chapters-list { max-height: 45vh; }
+  .chapter-title-text { display: none; }
+
+  .home-section { margin-top: 2rem; }
+  .section-title { font-size: 0.7rem; letter-spacing: 2px; }
+}
+
+@media (max-width: 400px) {
+  .manga-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .popular-card { flex: 0 0 120px; width: 120px; }
+  .release-card { flex: 0 0 200px; }
 }
 </style>
 </head>
 <body>
 
+<!-- ANIME BG -->
 <div class="anime-bg">
-  <svg class="wm1" viewBox="0 0 300 500" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color:var(--cyan)">
+  <svg class="wm1" viewBox="0 0 300 500" fill="currentColor" style="color:var(--cyan)">
     <ellipse cx="150" cy="60" rx="38" ry="45"/>
     <polygon points="112,30 95,0 125,25"/><polygon points="128,18 118,-10 140,20"/>
     <polygon points="155,14 148,-12 165,18"/><polygon points="172,22 175,-5 188,25"/>
@@ -341,67 +434,39 @@ header::after {
     <rect x="122" y="186" width="26" height="110" rx="10" transform="rotate(-5,135,241)"/>
     <rect x="152" y="186" width="26" height="110" rx="10" transform="rotate(5,165,241)"/>
     <path d="M110,110 Q70,200 80,310 Q120,280 150,295 Q180,280 220,310 Q230,200 190,110Z" opacity="0.5"/>
-    <rect x="130" y="55" width="15" height="4" rx="2" fill="var(--bg)"/>
-    <rect x="155" y="55" width="15" height="4" rx="2" fill="var(--bg)"/>
   </svg>
-  <svg class="wm2" viewBox="0 0 280 480" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color:var(--pink)">
+  <svg class="wm2" viewBox="0 0 280 480" fill="currentColor" style="color:var(--pink)">
     <ellipse cx="140" cy="65" rx="35" ry="42"/>
     <path d="M108,50 Q70,120 75,280 Q100,270 108,260 Q105,140 120,100Z"/>
     <path d="M172,50 Q210,120 205,280 Q180,270 172,260 Q175,140 160,100Z"/>
-    <path d="M120,100 Q140,130 160,100 Q155,200 140,230 Q125,200 120,100Z" opacity="0.6"/>
     <rect x="118" y="104" width="44" height="70" rx="6"/>
-    <path d="M110,170 Q80,220 85,290 Q140,270 140,270 Q140,270 195,290 Q200,220 170,170Z"/>
+    <path d="M110,170 Q80,220 85,290 Q140,270 140,270 Q195,290 200,220 Q170,170 136,165Z"/>
     <rect x="84" y="108" width="18" height="65" rx="9" transform="rotate(-15,93,140)"/>
     <rect x="178" y="108" width="18" height="65" rx="9" transform="rotate(15,187,140)"/>
     <rect x="122" y="280" width="22" height="100" rx="10"/>
     <rect x="148" y="280" width="22" height="100" rx="10"/>
-    <ellipse cx="100" cy="50" rx="20" ry="12" transform="rotate(-30,100,50)"/>
-    <ellipse cx="180" cy="50" rx="20" ry="12" transform="rotate(30,180,50)"/>
-    <circle cx="140" cy="50" r="8"/>
-    <line x1="210" y1="130" x2="255" y2="70" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-    <polygon points="255,55 265,75 245,75"/>
-    <circle cx="255" cy="55" r="10" opacity="0.7"/>
-    <ellipse cx="128" cy="65" rx="8" ry="9" fill="var(--bg)"/>
-    <ellipse cx="152" cy="65" rx="8" ry="9" fill="var(--bg)"/>
-    <ellipse cx="128" cy="65" rx="4" ry="5" fill="currentColor"/>
-    <ellipse cx="152" cy="65" rx="4" ry="5" fill="currentColor"/>
   </svg>
-  <svg class="wm3" viewBox="0 0 240 420" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color:var(--purple)">
+  <svg class="wm3" viewBox="0 0 240 420" fill="currentColor" style="color:var(--purple)">
     <rect x="75" y="20" width="90" height="80" rx="6"/>
     <rect x="100" y="0" width="6" height="25" rx="3"/><rect x="134" y="0" width="6" height="25" rx="3"/>
-    <circle cx="103" cy="0" r="6"/><circle cx="137" cy="0" r="6"/>
     <rect x="82" y="38" width="76" height="30" rx="4" fill="var(--bg)" opacity="0.8"/>
-    <rect x="86" y="42" width="32" height="22" rx="3" opacity="0.6"/>
-    <rect x="122" y="42" width="32" height="22" rx="3" opacity="0.6"/>
-    <rect x="90" y="76" width="60" height="18" rx="3" fill="var(--bg)" opacity="0.6"/>
     <rect x="60" y="110" width="120" height="100" rx="8"/>
-    <rect x="90" y="125" width="60" height="40" rx="6" fill="var(--bg)" opacity="0.5"/>
     <rect x="20" y="105" width="45" height="50" rx="10"/><rect x="175" y="105" width="45" height="50" rx="10"/>
     <rect x="22" y="148" width="36" height="80" rx="8"/><rect x="182" y="148" width="36" height="80" rx="8"/>
-    <rect x="18" y="224" width="42" height="40" rx="6"/><rect x="180" y="224" width="42" height="40" rx="6"/>
     <rect x="70" y="214" width="45" height="110" rx="8"/><rect x="125" y="214" width="45" height="110" rx="8"/>
-    <rect x="62" y="316" width="55" height="28" rx="6"/><rect x="123" y="316" width="55" height="28" rx="6"/>
-    <circle cx="95" cy="170" r="8" opacity="0.4"/><circle cx="145" cy="170" r="8" opacity="0.4"/>
-    <rect x="90" y="185" width="60" height="5" rx="2" opacity="0.4"/>
-    <rect x="90" y="195" width="40" height="5" rx="2" opacity="0.4"/>
   </svg>
-  <svg class="wm4" viewBox="0 0 220 420" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color:var(--cyan)">
+  <svg class="wm4" viewBox="0 0 220 420" fill="currentColor" style="color:var(--cyan)">
     <circle cx="110" cy="52" r="38"/>
     <rect x="76" y="38" width="68" height="20" rx="4" fill="var(--bg)" opacity="0.5"/>
-    <rect x="82" y="44" width="20" height="8" rx="4"/><rect x="118" y="44" width="20" height="8" rx="4"/>
     <rect x="84" y="86" width="52" height="85" rx="6"/>
-    <rect x="78" y="150" width="64" height="14" rx="4" opacity="0.7"/>
     <rect x="20" y="88" width="68" height="20" rx="10" transform="rotate(5,54,98)"/>
-    <rect x="136" y="94" width="55" height="18" rx="9" transform="rotate(-20,163,103)"/>
-    <path d="M84,165 Q60,200 55,280 Q90,275 100,270 Q110,260 110,260 Q110,260 120,270 Q130,275 165,280 Q160,200 136,165Z"/>
+    <path d="M84,165 Q60,200 55,280 Q90,275 110,260 Q130,275 165,280 Q160,200 136,165Z"/>
     <rect x="58" y="272" width="28" height="90" rx="10" transform="rotate(-8,72,317)"/>
     <rect x="134" y="272" width="28" height="90" rx="10" transform="rotate(8,148,317)"/>
-    <polygon points="30,72 42,80 42,66" opacity="0.5"/>
-    <polygon points="190,68 178,76 178,62" opacity="0.5"/>
-    <rect x="8" y="90" width="16" height="50" rx="4" transform="rotate(10,16,115)"/>
   </svg>
 </div>
 
+<!-- DESKTOP HEADER -->
 <header>
   <div class="logo" onclick="showPage('home')">
     <span class="logo-manga">MANGA</span><span class="logo-nexus">NEXUS</span>
@@ -421,12 +486,64 @@ header::after {
     <button class="nav-btn" onclick="showPage('explore')">◈ EXPLORAR</button>
     <button class="nav-btn" onclick="showPage('favorites')">◆ FAVORITOS</button>
     <button class="nav-btn" onclick="showPage('history')">◉ HISTÓRICO</button>
-    <span id="user-label" style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--cyan);margin-left:auto"></span>
+    <span id="user-label"></span>
     <button id="btn-admin-nav" class="nav-btn" style="display:none;color:var(--gold)" onclick="openAdmin()">⚙ ADMIN</button>
     <button id="btn-login-nav" class="nav-btn" onclick="openAuthModal('login')">ENTRAR</button>
     <button id="btn-logout-nav" class="nav-btn" style="display:none" onclick="doLogout()">SAIR</button>
   </div>
 </header>
+
+<!-- MOBILE HEADER -->
+<div class="mobile-header">
+  <div class="mobile-top">
+    <div class="mobile-logo" onclick="showPage('home')">
+      <span class="logo-manga">MN</span>
+    </div>
+    <div class="mobile-search-row">
+      <input type="text" id="mobile-search" placeholder="Buscar manga..."
+        onkeydown="if(event.key==='Enter')doSearch(this.value)">
+      <button onclick="doSearch(document.getElementById('mobile-search').value)">GO</button>
+    </div>
+    <button class="mobile-menu-btn" onclick="toggleDrawer()">☰</button>
+  </div>
+</div>
+
+<!-- MOBILE DRAWER -->
+<div class="mobile-drawer" id="mobile-drawer" onclick="closeDrawer(event)">
+  <div class="mobile-drawer-panel">
+    <div id="drawer-user" class="drawer-user" style="display:none"></div>
+    <div id="drawer-divider" class="drawer-divider" style="display:none"></div>
+    <button class="drawer-item" onclick="showPage('home');closeDrawer()">🏠 HOME</button>
+    <button class="drawer-item" onclick="showPage('explore');closeDrawer()">◈ EXPLORAR</button>
+    <button class="drawer-item" onclick="showPage('favorites');closeDrawer()">◆ FAVORITOS</button>
+    <button class="drawer-item" onclick="showPage('history');closeDrawer()">◉ HISTÓRICO</button>
+    <div class="drawer-divider"></div>
+    <button id="drawer-admin" class="drawer-item gold" style="display:none" onclick="openAdmin();closeDrawer()">⚙ ADMIN</button>
+    <button id="drawer-login" class="drawer-item" onclick="openAuthModal('login');closeDrawer()">→ ENTRAR</button>
+    <button id="drawer-logout" class="drawer-item pink" style="display:none" onclick="doLogout();closeDrawer()">✕ SAIR</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-btn active" id="bnav-home" onclick="showPage('home');setBnavActive('home')">
+      <span class="bnav-icon">🏠</span>HOME
+    </button>
+    <button class="bnav-btn" id="bnav-explore" onclick="showPage('explore');setBnavActive('explore')">
+      <span class="bnav-icon">◈</span>EXPLORAR
+    </button>
+    <button class="bnav-btn" id="bnav-favorites" onclick="showPage('favorites');setBnavActive('favorites')">
+      <span class="bnav-icon">♥</span>FAVS
+    </button>
+    <button class="bnav-btn" id="bnav-history" onclick="showPage('history');setBnavActive('history')">
+      <span class="bnav-icon">◉</span>HISTÓRICO
+    </button>
+    <button class="bnav-btn" id="bnav-account" onclick="handleAccountBtn()">
+      <span class="bnav-icon">👤</span>CONTA
+    </button>
+  </div>
+</nav>
 
 <!-- HOME -->
 <div id="home-page" class="page active">
@@ -444,7 +561,7 @@ header::after {
       <span class="sbadge sbadge-g">★ MAL SCORE</span>
     </div>
     <div class="big-search">
-      <input type="text" id="home-search" placeholder="Ex: Solo Leveling, One Piece, Jujutsu Kaisen..."
+      <input type="text" id="home-search" placeholder="Ex: Solo Leveling, One Piece..."
         onkeydown="if(event.key==='Enter')doSearch(document.getElementById('home-search').value)">
       <button onclick="doSearch(document.getElementById('home-search').value)">SCAN</button>
     </div>
@@ -475,17 +592,17 @@ header::after {
 <!-- RESULTS -->
 <div id="results-page" class="page">
   <div class="tabs-row">
-    <button class="tab-btn active" onclick="filterSource('all',this)">ALL SOURCES</button>
-    <button class="tab-btn" onclick="filterSource('mangazord',this)">◈ MANGAZORD</button>
-    <button class="tab-btn" onclick="filterSource('mangadex',this)">◈ MANGADEX</button>
-    <button class="tab-btn" onclick="filterSource('comick',this)">◈ COMICK</button>
+    <button class="tab-btn active" onclick="filterSource('all',this)">ALL</button>
+    <button class="tab-btn" onclick="filterSource('mangazord',this)">MANGAZORD</button>
+    <button class="tab-btn" onclick="filterSource('mangadex',this)">MANGADEX</button>
+    <button class="tab-btn" onclick="filterSource('comick',this)">COMICK</button>
   </div>
   <div style="margin-bottom:1.2rem">
     <div class="genre-label">// GÊNEROS ATIVOS</div>
     <div class="genre-pills" id="results-genre-pills" style="margin-top:0.5rem"></div>
     <div class="filter-actions" id="results-filter-actions" style="display:none;margin-top:0.7rem">
-      <button class="btn-primary" onclick="doSearch(document.getElementById('header-search').value)">REBUSCAR</button>
-      <button class="btn-ghost" onclick="clearGenres();doSearch(document.getElementById('header-search').value)">LIMPAR</button>
+      <button class="btn-primary" onclick="doSearch(document.getElementById('header-search').value||document.getElementById('mobile-search').value)">REBUSCAR</button>
+      <button class="btn-ghost" onclick="clearGenres();doSearch(document.getElementById('header-search').value||document.getElementById('mobile-search').value)">LIMPAR</button>
     </div>
   </div>
   <div class="section-title" id="results-title">RESULTADOS</div>
@@ -524,11 +641,11 @@ header::after {
   <div id="continue-bar" style="display:none;align-items:center;gap:0.8rem;background:var(--surface2);border:1px solid var(--cyan);border-radius:4px;padding:0.7rem 1rem;margin-bottom:0.8rem;cursor:pointer;transition:background 0.2s"
        onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='var(--surface2)'">
     <span id="continue-label" style="font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--cyan);letter-spacing:2px;flex:1"></span>
-    <span style="font-size:0.65rem;color:var(--muted);font-family:'Share Tech Mono',monospace">TOQUE PARA CONTINUAR →</span>
+    <span style="font-size:0.65rem;color:var(--muted);font-family:'Share Tech Mono',monospace">CONTINUAR →</span>
   </div>
   <div id="read-progress-bar" style="display:none;margin-bottom:0.8rem">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem">
-      <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:1px">// PROGRESSO DE LEITURA</span>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:1px">// PROGRESSO</span>
       <span id="read-progress-text" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--cyan)"></span>
     </div>
     <div style="height:3px;background:var(--surface3);border-radius:2px;overflow:hidden">
@@ -544,18 +661,18 @@ header::after {
 <div id="reader-page" class="page">
   <div class="reader-nav">
     <button onclick="goBackToDetail()">← SAIR</button>
-    <button class="nav-chapter" id="btn-prev" onclick="navChapter(-1)" disabled>‹ ANTERIOR</button>
+    <button class="nav-chapter" id="btn-prev" onclick="navChapter(-1)" disabled>‹ ANT</button>
     <div class="reader-title" id="reader-title"></div>
     <span class="reader-progress" id="reader-progress"></span>
-    <button class="nav-chapter" id="btn-next" onclick="navChapter(1)" disabled>PRÓXIMO ›</button>
-    <button onclick="scrollTo(0,0)">↑ TOPO</button>
+    <button class="nav-chapter" id="btn-next" onclick="navChapter(1)" disabled>PRX ›</button>
+    <button onclick="scrollTo(0,0)">↑</button>
   </div>
   <div class="pages-container" id="pages-container"></div>
   <div class="reader-end-nav" id="reader-end-nav" style="display:none">
     <div class="end-label">// FIM DO CAPÍTULO</div>
     <div class="end-btn-row">
-      <button class="btn-end btn-end-prev" id="end-btn-prev" onclick="navChapter(-1)">‹ CAPÍTULO ANTERIOR</button>
-      <button class="btn-end btn-end-next" id="end-btn-next" onclick="navChapter(1)">PRÓXIMO CAPÍTULO ›</button>
+      <button class="btn-end btn-end-prev" id="end-btn-prev" onclick="navChapter(-1)">‹ ANTERIOR</button>
+      <button class="btn-end btn-end-next" id="end-btn-next" onclick="navChapter(1)">PRÓXIMO ›</button>
     </div>
     <button class="btn-end btn-end-back" onclick="goBackToDetail()">← VOLTAR PARA LISTA</button>
   </div>
@@ -601,29 +718,28 @@ header::after {
   <div id="admin-user-list" style="display:flex;flex-direction:column;gap:0.5rem;margin-top:1rem"></div>
 </div>
 
-<!-- MODAL AUTH -->
+<!-- AUTH MODAL -->
 <div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.85);
-  backdrop-filter:blur(8px);align-items:center;justify-content:center">
+  backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;
-    padding:2rem;width:100%;max-width:380px;display:flex;flex-direction:column;gap:1.2rem">
-    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0.5rem">
+    padding:1.5rem;width:100%;max-width:380px;display:flex;flex-direction:column;gap:1rem;
+    max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0.3rem">
       <button id="auth-tab-login" class="auth-tab active" onclick="switchAuthTab('login')">ENTRAR</button>
       <button id="auth-tab-reg"   class="auth-tab"        onclick="switchAuthTab('register')">CADASTRAR</button>
-      <button onclick="closeAuthModal()" style="margin-left:auto;background:none;border:none;color:var(--muted);
-        cursor:pointer;font-size:1.2rem;padding:0 0.5rem">✕</button>
+      <button onclick="closeAuthModal()" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;padding:0 0.5rem">✕</button>
     </div>
     <div id="auth-form-login" style="display:flex;flex-direction:column;gap:0.8rem">
       <input id="login-user" class="auth-input" type="text" placeholder="Username" autocomplete="username">
       <input id="login-pass" class="auth-input" type="password" placeholder="Senha" autocomplete="current-password">
-      <button class="btn-primary" onclick="doLogin(document.getElementById('login-user').value,document.getElementById('login-pass').value,false)">ENTRAR</button>
+      <button class="btn-primary" style="width:100%;padding:0.75rem" onclick="doLogin(document.getElementById('login-user').value,document.getElementById('login-pass').value,false)">ENTRAR</button>
     </div>
     <div id="auth-form-reg" style="display:none;flex-direction:column;gap:0.8rem">
       <input id="reg-user" class="auth-input" type="text" placeholder="Username (mín. 3 caracteres)" autocomplete="username">
       <input id="reg-pass" class="auth-input" type="password" placeholder="Senha (mín. 6 caracteres)" autocomplete="new-password">
-      <button class="btn-primary" onclick="doLogin(document.getElementById('reg-user').value,document.getElementById('reg-pass').value,true)">CRIAR CONTA</button>
+      <button class="btn-primary" style="width:100%;padding:0.75rem" onclick="doLogin(document.getElementById('reg-user').value,document.getElementById('reg-pass').value,true)">CRIAR CONTA</button>
     </div>
-    <div id="auth-msg" style="color:var(--pink);font-family:'Share Tech Mono',monospace;font-size:0.7rem;
-      text-align:center;min-height:1rem"></div>
+    <div id="auth-msg" style="color:var(--pink);font-family:'Share Tech Mono',monospace;font-size:0.7rem;text-align:center;min-height:1rem"></div>
   </div>
 </div>
 
@@ -633,6 +749,29 @@ const API = 'https://mangarx-backend.onrender.com/api';
 function proxyImg(url) {
   if (!url) return '';
   return `${API}/image?url=${encodeURIComponent(url)}`;
+}
+
+// ── MOBILE DRAWER ──────────────────────────────────────────────────────────────
+function toggleDrawer() {
+  document.getElementById('mobile-drawer').classList.toggle('open');
+}
+function closeDrawer(e) {
+  if (!e || e.target === document.getElementById('mobile-drawer')) {
+    document.getElementById('mobile-drawer').classList.remove('open');
+  }
+}
+function setBnavActive(name) {
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('bnav-'+name);
+  if (btn) btn.classList.add('active');
+}
+function handleAccountBtn() {
+  if (isLoggedIn()) {
+    // mostra drawer com opção de sair
+    toggleDrawer();
+  } else {
+    openAuthModal('login');
+  }
 }
 
 // ── GÊNEROS ───────────────────────────────────────────────────────────────────
@@ -689,22 +828,19 @@ renderGenrePills('home-genre-pills');
 let currentManga = null, allResults = [];
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
-let _session = null; // { token, username, role, user_id }
+let _session = null;
 
 function authHeaders() {
   if (!_session) return { 'Content-Type': 'application/json' };
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_session.token}` };
 }
-
 function authFetch(url, opts={}) {
   return fetch(url, { ...opts, headers: { ...(opts.headers||{}), ...authHeaders() } });
 }
-
 function isLoggedIn() { return !!_session; }
 function isAdmin()    { return _session?.role === 'admin'; }
 
 function setSession(data) {
-  // CORREÇÃO: inclui user_id retornado pelo backend
   _session = data ? { token: data.token, username: data.username, role: data.role, user_id: data.user_id } : null;
   updateAuthUI();
 }
@@ -714,72 +850,73 @@ function updateAuthUI() {
   const btnLogout = document.getElementById('btn-logout-nav');
   const btnAdmin  = document.getElementById('btn-admin-nav');
   const userLabel = document.getElementById('user-label');
+  // drawer
+  const drawerUser   = document.getElementById('drawer-user');
+  const drawerDivider= document.getElementById('drawer-divider');
+  const drawerAdmin  = document.getElementById('drawer-admin');
+  const drawerLogin  = document.getElementById('drawer-login');
+  const drawerLogout = document.getElementById('drawer-logout');
+
   if (_session) {
     if (btnLogin)  btnLogin.style.display  = 'none';
     if (btnLogout) btnLogout.style.display = 'inline-flex';
     if (btnAdmin)  btnAdmin.style.display  = isAdmin() ? 'inline-flex' : 'none';
     if (userLabel) userLabel.textContent   = `◉ ${_session.username.toUpperCase()}`;
+    if (drawerUser)   { drawerUser.textContent = `◉ ${_session.username.toUpperCase()}`; drawerUser.style.display='block'; }
+    if (drawerDivider) drawerDivider.style.display = 'block';
+    if (drawerAdmin)  drawerAdmin.style.display  = isAdmin() ? 'block' : 'none';
+    if (drawerLogin)  drawerLogin.style.display  = 'none';
+    if (drawerLogout) drawerLogout.style.display = 'block';
   } else {
     if (btnLogin)  btnLogin.style.display  = 'inline-flex';
     if (btnLogout) btnLogout.style.display = 'none';
     if (btnAdmin)  btnAdmin.style.display  = 'none';
     if (userLabel) userLabel.textContent   = '';
+    if (drawerUser)   { drawerUser.textContent = ''; drawerUser.style.display='none'; }
+    if (drawerDivider) drawerDivider.style.display = 'none';
+    if (drawerAdmin)  drawerAdmin.style.display  = 'none';
+    if (drawerLogin)  drawerLogin.style.display  = 'block';
+    if (drawerLogout) drawerLogout.style.display = 'none';
   }
-  _progressoCache = null;
-  _notifSeenCache = null;
-  _favsCache      = null;
+  _progressoCache = null; _notifSeenCache = null; _favsCache = null;
 }
 
 async function doLogin(username, senha, isRegister=false) {
   const endpoint = isRegister ? 'registro' : 'login';
   const msgEl = document.getElementById('auth-msg');
-  msgEl.textContent = 'AGUARDE...';
-  msgEl.style.color = 'var(--muted)';
+  msgEl.textContent = 'AGUARDE...'; msgEl.style.color = 'var(--muted)';
   try {
     const r = await fetch(`${API}/auth/${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: username.trim().toLowerCase(), senha })
     });
     const d = await r.json();
-    if (!r.ok) {
-      msgEl.style.color = 'var(--pink)';
-      msgEl.textContent = d.error || 'Erro desconhecido';
-      return;
-    }
+    if (!r.ok) { msgEl.style.color='var(--pink)'; msgEl.textContent=d.error||'Erro desconhecido'; return; }
     setSession(d);
     closeAuthModal();
-    _progressoCache = null; _notifSeenCache = null; _favsCache = null;
-    showNotifToast([{ title: `Bem-vindo, ${d.username}!`, chapter: '', manga: null, isSys: true }]);
-  } catch(e) {
-    msgEl.style.color = 'var(--pink)';
-    msgEl.textContent = 'Erro de conexão';
-  }
+    _progressoCache=null; _notifSeenCache=null; _favsCache=null;
+    showNotifToast([{ title: `Bem-vindo, ${d.username}!`, isSys: true }]);
+  } catch { msgEl.style.color='var(--pink)'; msgEl.textContent='Erro de conexão'; }
 }
 
 async function doLogout() {
-  if (_session) {
-    authFetch(`${API}/auth/logout`, { method: 'POST' }).catch(() => {});
-    setSession(null);
-  }
+  if (_session) { authFetch(`${API}/auth/logout`,{method:'POST'}).catch(()=>{}); setSession(null); }
 }
 
 function openAuthModal(tab='login') {
-  document.getElementById('auth-modal').style.display = 'flex';
+  document.getElementById('auth-modal').style.display='flex';
   switchAuthTab(tab);
 }
-
 function closeAuthModal() {
-  document.getElementById('auth-modal').style.display = 'none';
-  document.getElementById('auth-msg').textContent = '';
+  document.getElementById('auth-modal').style.display='none';
+  document.getElementById('auth-msg').textContent='';
 }
-
 function switchAuthTab(tab) {
-  document.getElementById('auth-tab-login').classList.toggle('active', tab==='login');
-  document.getElementById('auth-tab-reg').classList.toggle('active', tab==='register');
-  document.getElementById('auth-form-login').style.display   = tab==='login'    ? 'flex' : 'none';
-  document.getElementById('auth-form-reg').style.display     = tab==='register' ? 'flex' : 'none';
-  document.getElementById('auth-msg').textContent = '';
+  document.getElementById('auth-tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('auth-tab-reg').classList.toggle('active',tab==='register');
+  document.getElementById('auth-form-login').style.display = tab==='login'?'flex':'none';
+  document.getElementById('auth-form-reg').style.display   = tab==='register'?'flex':'none';
+  document.getElementById('auth-msg').textContent='';
 }
 
 // ── ADMIN ─────────────────────────────────────────────────────────────────────
@@ -790,132 +927,83 @@ async function openAdmin() {
   try {
     const r = await authFetch(`${API}/admin/usuarios`);
     const d = await r.json();
-    const usuarios = d.usuarios || [];
-    if (!usuarios.length) { list.innerHTML = '<div class="loader">NENHUM USUÁRIO</div>'; return; }
-    list.innerHTML = usuarios.map(u => `
+    const usuarios = d.usuarios||[];
+    if (!usuarios.length) { list.innerHTML='<div class="loader">NENHUM USUÁRIO</div>'; return; }
+    list.innerHTML = usuarios.map(u=>`
       <div class="admin-user-row" id="adminrow-${u.id}">
         <span class="admin-user-name">${u.username} ${u.role==='admin'?'👑':''}</span>
         <span class="admin-user-meta">${new Date(u.criado_em).toLocaleDateString('pt-BR')}</span>
         <span class="admin-user-status" style="color:${u.bloqueado?'var(--pink)':'var(--cyan)'}">${u.bloqueado?'BLOQUEADO':'ATIVO'}</span>
         <div class="admin-user-actions">
-          ${u.id !== _session?.user_id ? `
+          ${u.id!==_session?.user_id?`
             <button class="btn-ghost" style="font-size:0.65rem;padding:0.3rem 0.6rem"
               onclick="adminToggleBlock('${u.id}',${!u.bloqueado})">${u.bloqueado?'DESBLOQUEAR':'BLOQUEAR'}</button>
             <button class="btn-ghost" style="font-size:0.65rem;padding:0.3rem 0.6rem"
-              onclick="adminToggleRole('${u.id}','${u.role==='admin'?'user':'admin'}')">${u.role==='admin'?'REMOVER ADMIN':'TORNAR ADMIN'}</button>
+              onclick="adminToggleRole('${u.id}','${u.role==='admin'?'user':'admin'}')">${u.role==='admin'?'REM ADMIN':'ADMIN'}</button>
             <button class="btn-ghost" style="font-size:0.65rem;padding:0.3rem 0.6rem;border-color:var(--pink);color:var(--pink)"
               onclick="adminDelete('${u.id}','${u.username}')">DELETAR</button>
-          ` : '<span style="color:var(--muted);font-size:0.65rem">VOCÊ</span>'}
+          `:'<span style="color:var(--muted);font-size:0.65rem">VOCÊ</span>'}
         </div>
       </div>`).join('');
-  } catch { list.innerHTML = '<div class="loader">ERRO AO CARREGAR</div>'; }
+  } catch { list.innerHTML='<div class="loader">ERRO</div>'; }
 }
+async function adminToggleBlock(uid,bloquear){ await authFetch(`${API}/admin/usuario/bloquear`,{method:'POST',body:JSON.stringify({user_id:uid,bloqueado:bloquear})}); openAdmin(); }
+async function adminToggleRole(uid,role){ await authFetch(`${API}/admin/usuario/role`,{method:'POST',body:JSON.stringify({user_id:uid,role})}); openAdmin(); }
+async function adminDelete(uid,username){ if(!confirm(`Deletar "${username}"?`))return; await authFetch(`${API}/admin/usuario/deletar`,{method:'POST',body:JSON.stringify({user_id:uid})}); openAdmin(); }
 
-async function adminToggleBlock(uid, bloquear) {
-  await authFetch(`${API}/admin/usuario/bloquear`, { method:'POST',
-    body: JSON.stringify({ user_id: uid, bloqueado: bloquear }) });
-  openAdmin();
-}
-
-async function adminToggleRole(uid, role) {
-  await authFetch(`${API}/admin/usuario/role`, { method:'POST',
-    body: JSON.stringify({ user_id: uid, role }) });
-  openAdmin();
-}
-
-async function adminDelete(uid, username) {
-  if (!confirm(`Deletar usuário "${username}"? Esta ação é irreversível.`)) return;
-  await authFetch(`${API}/admin/usuario/deletar`, { method:'POST',
-    body: JSON.stringify({ user_id: uid }) });
-  openAdmin();
-}
-
-// ── PROGRESSO (cache em memória, Supabase em background) ──────────────────────
-let _progressoCache = null;
-let _notifSeenCache = null;
+// ── PROGRESSO ─────────────────────────────────────────────────────────────────
+let _progressoCache=null, _notifSeenCache=null;
 
 async function _getProgresso() {
-  if (_progressoCache !== null) return _progressoCache;
-  if (!isLoggedIn()) { _progressoCache = {}; return _progressoCache; }
+  if (_progressoCache!==null) return _progressoCache;
+  if (!isLoggedIn()) { _progressoCache={}; return _progressoCache; }
   try {
-    const r = await authFetch(`${API}/progresso`);
-    const d = await r.json();
-    _progressoCache = {};
-    for (const p of (d.progresso||[])) {
-      _progressoCache[p.manga_id] = {
-        last: { id: p.last_chapter_id, num: p.last_chapter_num, source: p.last_chapter_src },
-        read: p.read_chapters || {}
-      };
+    const r=await authFetch(`${API}/progresso`); const d=await r.json();
+    _progressoCache={};
+    for(const p of(d.progresso||[])){
+      _progressoCache[p.manga_id]={last:{id:p.last_chapter_id,num:p.last_chapter_num,source:p.last_chapter_src},read:p.read_chapters||{}};
     }
-  } catch { _progressoCache = {}; }
+  } catch { _progressoCache={}; }
   return _progressoCache;
 }
 
 async function _getNotifSeen() {
-  if (_notifSeenCache !== null) return _notifSeenCache;
-  if (!isLoggedIn()) { _notifSeenCache = {}; return _notifSeenCache; }
-  try {
-    const r = await authFetch(`${API}/notif/seen`);
-    const d = await r.json();
-    _notifSeenCache = d.seen || {};
-  } catch { _notifSeenCache = {}; }
+  if (_notifSeenCache!==null) return _notifSeenCache;
+  if (!isLoggedIn()) { _notifSeenCache={}; return _notifSeenCache; }
+  try { const r=await authFetch(`${API}/notif/seen`); const d=await r.json(); _notifSeenCache=d.seen||{}; }
+  catch { _notifSeenCache={}; }
   return _notifSeenCache;
 }
 
-async function dbSaveProgresso(manga, chapterId, chapterNum, source) {
-  const prog = await _getProgresso();
-  if (!prog[manga.id]) prog[manga.id] = { last: {}, read: {} };
-  prog[manga.id].last = { id: chapterId, num: chapterNum, source };
-  prog[manga.id].read[String(chapterId)] = true;
+async function dbSaveProgresso(manga,chapterId,chapterNum,source) {
+  const prog=await _getProgresso();
+  if (!prog[manga.id]) prog[manga.id]={last:{},read:{}};
+  prog[manga.id].last={id:chapterId,num:chapterNum,source};
+  prog[manga.id].read[String(chapterId)]=true;
   if (!isLoggedIn()) return;
-  authFetch(`${API}/progresso/salvar`, {
-    method: 'POST',
-    body: JSON.stringify({
-      manga_id:         manga.id,
-      manga_title:      manga.title,
-      manga_cover:      manga.cover || '',
-      manga_source:     manga.source || '',
-      manga_data:       manga,
-      last_chapter_id:  String(chapterId),
-      last_chapter_num: String(chapterNum),
-      last_chapter_src: source,
-      read_chapters:    prog[manga.id].read
-    })
-  }).catch(() => {});
+  authFetch(`${API}/progresso/salvar`,{method:'POST',body:JSON.stringify({
+    manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
+    manga_source:manga.source||'',manga_data:manga,last_chapter_id:String(chapterId),
+    last_chapter_num:String(chapterNum),last_chapter_src:source,read_chapters:prog[manga.id].read
+  })}).catch(()=>{});
 }
 
-// ── DB ────────────────────────────────────────────────────────────────────────
-async function dbSaveHistory(manga, chapterId, chapterNum) {
+async function dbSaveHistory(manga,chapterId,chapterNum) {
   if (!isLoggedIn()) return;
-  try {
-    await authFetch(`${API}/historico/salvar`, { method:'POST',
-      body: JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
-        manga_source:manga.source||'',chapter_id:chapterId,chapter_num:chapterNum,manga_data:manga})});
-  } catch {}
+  try { await authFetch(`${API}/historico/salvar`,{method:'POST',body:JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',manga_source:manga.source||'',chapter_id:chapterId,chapter_num:chapterNum,manga_data:manga})}); } catch {}
 }
-
 async function dbSaveFav(manga) {
   if (!isLoggedIn()) return;
-  try {
-    await authFetch(`${API}/favoritos/salvar`, { method:'POST',
-      body: JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
-        manga_source:manga.source||'',manga_data:manga})});
-  } catch {}
+  try { await authFetch(`${API}/favoritos/salvar`,{method:'POST',body:JSON.stringify({manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',manga_source:manga.source||'',manga_data:manga})}); } catch {}
 }
-
 async function dbRemoveFav(mangaId) {
   if (!isLoggedIn()) return;
-  try {
-    await authFetch(`${API}/favoritos/remover`, { method:'POST',
-      body: JSON.stringify({manga_id:mangaId})});
-  } catch {}
+  try { await authFetch(`${API}/favoritos/remover`,{method:'POST',body:JSON.stringify({manga_id:mangaId})}); } catch {}
 }
-
 async function dbLoadHistory() {
   if (!isLoggedIn()) return [];
   try { const r=await authFetch(`${API}/historico`); const d=await r.json(); return d.historico||[]; } catch { return []; }
 }
-
 async function dbLoadFavorites() {
   if (!isLoggedIn()) return [];
   try { const r=await authFetch(`${API}/favoritos`); const d=await r.json(); return d.favoritos||[]; } catch { return []; }
@@ -926,28 +1014,22 @@ async function loadHomeData() {
   Promise.all([
     fetch(`${API}/releases?lang=pt-br`).then(r=>r.json()).catch(()=>({releases:[]})),
     fetch(`${API}/popular?lang=pt-br`).then(r=>r.json()).catch(()=>({results:[]}))
-  ]).then(([relData,popData]) => {
-    renderReleases(relData.releases||[]);
-    renderPopular(popData.results||[]);
-  });
+  ]).then(([relData,popData])=>{ renderReleases(relData.releases||[]); renderPopular(popData.results||[]); });
 }
 
 function renderReleases(releases) {
-  const el = document.getElementById('releases-scroll');
-  if (!releases.length) {
-    el.innerHTML = '<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem;letter-spacing:2px">// NENHUM LANÇAMENTO ENCONTRADO</div>';
-    return;
-  }
-  el.innerHTML = releases.map(r => {
-    const mangaObj = {id:r.manga_id,title:r.manga_title,cover:r.cover||'',source:'mangadex',status:'',tags:[],description:''};
-    const safeM = JSON.stringify(mangaObj).replace(/"/g,'&quot;');
-    const langLabel = r.lang==='pt-br'?'PT-BR':r.lang==='pt'?'PT':r.lang.toUpperCase();
+  const el=document.getElementById('releases-scroll');
+  if (!releases.length) { el.innerHTML='<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem">// NENHUM LANÇAMENTO</div>'; return; }
+  el.innerHTML=releases.map(r=>{
+    const mangaObj={id:r.manga_id,title:r.manga_title,cover:r.cover||'',source:'mangadex',status:'',tags:[],description:''};
+    const safeM=JSON.stringify(mangaObj).replace(/"/g,'&quot;');
+    const langLabel=r.lang==='pt-br'?'PT-BR':r.lang==='pt'?'PT':r.lang.toUpperCase();
     return `<div class="release-card" onclick='openManga(${safeM})'>
       <img src="${r.cover?proxyImg(r.cover):''}" alt="${r.manga_title}" loading="lazy" onerror="this.style.background='var(--surface2)';this.style.minWidth='65px'">
       <div class="release-card-info">
         <div class="release-card-manga">${r.manga_title}</div>
         <div class="release-card-ch">CAP ${r.chapter_num}</div>
-        ${r.chapter_title?`<div style="font-size:0.65rem;color:var(--muted);margin-top:0.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Rajdhani',sans-serif">${r.chapter_title}</div>`:''}
+        ${r.chapter_title?`<div style="font-size:0.65rem;color:var(--muted);margin-top:0.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.chapter_title}</div>`:''}
         <div class="release-card-lang">${langLabel}</div>
       </div>
     </div>`;
@@ -955,10 +1037,10 @@ function renderReleases(releases) {
 }
 
 function renderPopular(items) {
-  const el = document.getElementById('popular-scroll');
-  if (!items.length) { el.innerHTML = '<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem">// ERRO</div>'; return; }
-  el.innerHTML = items.map(m => {
-    const safeM = JSON.stringify(m).replace(/"/g,'&quot;');
+  const el=document.getElementById('popular-scroll');
+  if (!items.length) { el.innerHTML='<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;padding:1rem">// ERRO</div>'; return; }
+  el.innerHTML=items.map(m=>{
+    const safeM=JSON.stringify(m).replace(/"/g,'&quot;');
     return `<div class="popular-card" onclick='openManga(${safeM})'>
       <img src="${proxyImg(m.cover)}" alt="${m.title}" loading="lazy" onerror="this.style.background='var(--surface2)'">
       <div class="popular-card-info"><div class="popular-card-title">${m.title}</div></div>
@@ -968,7 +1050,7 @@ function renderPopular(items) {
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
 function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(name+'-page').classList.add('active');
   if (!['detail','reader'].includes(name)) history.replaceState(null,'','#'+name);
   if (name==='favorites') renderFavorites();
@@ -978,84 +1060,79 @@ function showPage(name) {
     renderGenrePills('explore-genre-pills');
     if (!document.getElementById('explore-grid').innerHTML.trim()) loadExplore(true);
   }
+  // sincroniza bottom nav
+  const bnav = document.getElementById('bnav-'+name);
+  if (bnav) setBnavActive(name);
 }
 
 // ── EXPLORE ───────────────────────────────────────────────────────────────────
 let exploreType='all', exploreOffset=0, exploreTotal=0;
-const TYPE_LABELS = {all:'// TODOS OS TÍTULOS',manga:'// MANGA',manhwa:'// MANHWA',manhua:'// MANHUA',doujinshi:'// DOUJINSHI'};
+const TYPE_LABELS={all:'// TODOS OS TÍTULOS',manga:'// MANGA',manhwa:'// MANHWA',manhua:'// MANHUA',doujinshi:'// DOUJINSHI'};
 
-function setExploreType(type, btn) {
-  exploreType = type;
+function setExploreType(type,btn) {
+  exploreType=type;
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   loadExplore(true);
 }
 
 async function loadExplore(reset=false) {
-  if (reset) exploreOffset = 0;
-  const grid = document.getElementById('explore-grid');
-  const btn  = document.getElementById('load-more-btn');
-  if (reset) grid.innerHTML = '<div class="loader">CARREGANDO DADOS</div>';
-  document.getElementById('explore-title').textContent = TYPE_LABELS[exploreType]||'// EXPLORAR';
-  let url = `${API}/explore?type=${exploreType}&lang=pt-br&offset=${exploreOffset}`;
-  if (selectedGenres.size>0) url += '&'+[...selectedGenres].map(g=>`tags[]=${g}`).join('&');
+  if (reset) exploreOffset=0;
+  const grid=document.getElementById('explore-grid'), btn=document.getElementById('load-more-btn');
+  if (reset) grid.innerHTML='<div class="loader">CARREGANDO DADOS</div>';
+  document.getElementById('explore-title').textContent=TYPE_LABELS[exploreType]||'// EXPLORAR';
+  let url=`${API}/explore?type=${exploreType}&lang=pt-br&offset=${exploreOffset}`;
+  if (selectedGenres.size>0) url+='&'+[...selectedGenres].map(g=>`tags[]=${g}`).join('&');
   try {
-    const r    = await fetch(url);
-    const data = await r.json();
-    exploreTotal = data.total||0;
-    renderGrid(data.results||[], 'explore-grid', !reset);
-    exploreOffset += (data.results||[]).length;
-    btn.style.display = exploreOffset < exploreTotal ? 'block' : 'none';
-  } catch(e) {
-    if (reset) grid.innerHTML = '<div class="loader">ERRO DE CONEXÃO</div>';
-  }
+    const r=await fetch(url), data=await r.json();
+    exploreTotal=data.total||0;
+    renderGrid(data.results||[],'explore-grid',!reset);
+    exploreOffset+=(data.results||[]).length;
+    btn.style.display=exploreOffset<exploreTotal?'block':'none';
+  } catch(e) { if(reset) grid.innerHTML='<div class="loader">ERRO DE CONEXÃO</div>'; }
 }
 
 function loadMore() { loadExplore(false); }
 
 // ── SEARCH ────────────────────────────────────────────────────────────────────
 async function doSearch(q) {
-  if (!q.trim() && selectedGenres.size===0) return;
-  showPage('results');
+  if (!q.trim()&&selectedGenres.size===0) return;
+  // sincroniza os campos de busca
+  document.getElementById('header-search').value=q;
+  document.getElementById('mobile-search').value=q;
+  showPage('results'); setBnavActive('');
   renderGenrePills('results-genre-pills');
-  const ra = document.getElementById('results-filter-actions');
-  if (ra) ra.style.display = selectedGenres.size>0?'flex':'none';
-  const titlePart = q.trim() ? `"${q.toUpperCase()}"` : 'ALL';
-  document.getElementById('results-title').textContent = `RESULTADOS: ${titlePart}`;
-  document.getElementById('results-grid').innerHTML = '<div class="loader">BUSCANDO EM TODAS AS FONTES</div>';
-  const lang = document.getElementById('header-lang')?.value||'pt-br';
+  const ra=document.getElementById('results-filter-actions');
+  if (ra) ra.style.display=selectedGenres.size>0?'flex':'none';
+  document.getElementById('results-title').textContent=`RESULTADOS: "${q.toUpperCase()}"`;
+  document.getElementById('results-grid').innerHTML='<div class="loader">BUSCANDO EM TODAS AS FONTES</div>';
+  const lang=document.getElementById('header-lang')?.value||'pt-br';
   try {
-    let url = `${API}/search?q=${encodeURIComponent(q)}&lang=${lang}&source=all`;
-    if (selectedGenres.size>0) url += '&'+[...selectedGenres].map(g=>`tags[]=${g}`).join('&');
-    const r    = await fetch(url);
-    const data = await r.json();
-    allResults = data.results||[];
-    renderGrid(allResults, 'results-grid');
-  } catch {
-    document.getElementById('results-grid').innerHTML = '<div class="loader">ERRO DE CONEXÃO</div>';
-  }
+    let url=`${API}/search?q=${encodeURIComponent(q)}&lang=${lang}&source=all`;
+    if (selectedGenres.size>0) url+='&'+[...selectedGenres].map(g=>`tags[]=${g}`).join('&');
+    const r=await fetch(url), data=await r.json();
+    allResults=data.results||[];
+    renderGrid(allResults,'results-grid');
+  } catch { document.getElementById('results-grid').innerHTML='<div class="loader">ERRO DE CONEXÃO</div>'; }
 }
 
-function filterSource(src, btn) {
+function filterSource(src,btn) {
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  const filtered = src==='all' ? allResults : allResults.filter(r=>r.source===src);
-  renderGrid(filtered, 'results-grid');
+  const filtered=src==='all'?allResults:allResults.filter(r=>r.source===src);
+  renderGrid(filtered,'results-grid');
 }
 
 // ── GRID ──────────────────────────────────────────────────────────────────────
-function renderGrid(items, containerId, append=false) {
-  const grid = document.getElementById(containerId);
-  if (!items||!items.length) {
-    if (!append) grid.innerHTML = '<div class="loader">NENHUM RESULTADO</div>';
-    return;
-  }
-  const html = items.map(m => {
-    const safeM       = JSON.stringify(m).replace(/"/g,'&quot;');
-    const sourceLabel = m.source==='mangadex'?'MANGADEX':m.source==='comick'?'COMICK':'MANGAZORD';
-    const scoreHTML   = m.score ? `<div class="card-score">★ ${parseFloat(m.score).toFixed(1)}</div>` : '';
-    const tipoHTML    = m.tipo  ? `<div class="card-tipo ${m.tipo}">${m.tipo.toUpperCase()}</div>` : '';
-    const tagsHTML    = (m.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('');
+function renderGrid(items,containerId,append=false) {
+  const grid=document.getElementById(containerId);
+  if (!items||!items.length) { if(!append) grid.innerHTML='<div class="loader">NENHUM RESULTADO</div>'; return; }
+  const html=items.map(m=>{
+    const safeM=JSON.stringify(m).replace(/"/g,'&quot;');
+    const sourceLabel=m.source==='mangadex'?'MANGADEX':m.source==='comick'?'COMICK':'MANGAZORD';
+    const scoreHTML=m.score?`<div class="card-score">★ ${parseFloat(m.score).toFixed(1)}</div>`:'';
+    const tipoHTML=m.tipo?`<div class="card-tipo ${m.tipo}">${m.tipo.toUpperCase()}</div>`:'';
+    const tagsHTML=(m.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('');
     return `<div class="manga-card" onclick='openManga(${safeM})'>
       <img src="${proxyImg(m.cover)}" alt="${m.title}" loading="lazy" onerror="this.style.background='var(--surface2)'">
       <div class="card-source ${m.source}">${sourceLabel}</div>
@@ -1067,409 +1144,257 @@ function renderGrid(items, containerId, append=false) {
       </div>
     </div>`;
   }).join('');
-  if (append) grid.innerHTML += html;
-  else        grid.innerHTML  = html;
+  if (append) grid.innerHTML+=html; else grid.innerHTML=html;
 }
 
-function translateStatus(s) {
-  return {ongoing:'EM ANDAMENTO',completed:'COMPLETO',hiatus:'HIATO',cancelled:'CANCELADO'}[s]||s||'';
-}
+function translateStatus(s) { return {ongoing:'EM ANDAMENTO',completed:'COMPLETO',hiatus:'HIATO',cancelled:'CANCELADO'}[s]||s||''; }
 
 // ── OPEN MANGA ────────────────────────────────────────────────────────────────
 async function openManga(manga) {
-  currentManga = manga;
-  document.getElementById('detail-title').textContent   = manga.title;
-  document.getElementById('detail-desc').textContent    = manga.description||'Sem descrição.';
-  document.getElementById('detail-cover').src           = proxyImg(manga.cover);
-  document.getElementById('detail-status').textContent  = translateStatus(manga.status);
-  const badge    = document.getElementById('detail-source-badge');
-  const srcLabel = manga.source==='comick'?'COMICK':manga.source==='mangazord'?'MANGAZORD':'MANGADEX';
-  const srcColor = manga.source==='comick'?'#80b3ff':manga.source==='mangazord'?'#00ff9d':'var(--cyan)';
-  badge.innerHTML = `<span style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;color:${srcColor};border:1px solid;border-color:currentColor;padding:0.2rem 0.6rem;border-radius:2px;background:rgba(0,0,0,0.3)">◈ ${srcLabel}</span>`;
-  const scoreEl = document.getElementById('detail-score');
-  scoreEl.style.display = 'none';
+  currentManga=manga;
+  document.getElementById('detail-title').textContent=manga.title;
+  document.getElementById('detail-desc').textContent=manga.description||'Sem descrição.';
+  document.getElementById('detail-cover').src=proxyImg(manga.cover);
+  document.getElementById('detail-status').textContent=translateStatus(manga.status);
+  const badge=document.getElementById('detail-source-badge');
+  const srcLabel=manga.source==='comick'?'COMICK':manga.source==='mangazord'?'MANGAZORD':'MANGADEX';
+  const srcColor=manga.source==='comick'?'#80b3ff':manga.source==='mangazord'?'#00ff9d':'var(--cyan)';
+  badge.innerHTML=`<span style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;color:${srcColor};border:1px solid;border-color:currentColor;padding:0.2rem 0.6rem;border-radius:2px;background:rgba(0,0,0,0.3)">◈ ${srcLabel}</span>`;
+  document.getElementById('detail-score').style.display='none';
   fetchScoreBackground(manga.title);
-  document.getElementById('detail-tags').innerHTML = (manga.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
-  const extLink = document.getElementById('ext-link');
-  if (manga.external) { extLink.href=manga.external; extLink.style.display='inline-flex'; }
-  else { extLink.style.display='none'; }
-  updateFavBtn();
-  loadChapters();
-  showPage('detail');
+  document.getElementById('detail-tags').innerHTML=(manga.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
+  const extLink=document.getElementById('ext-link');
+  if (manga.external) { extLink.href=manga.external; extLink.style.display='inline-flex'; } else { extLink.style.display='none'; }
+  updateFavBtn(); loadChapters(); showPage('detail');
 }
 
 async function fetchScoreBackground(title) {
   try {
-    const r = await fetch(`${API}/score?title=${encodeURIComponent(title)}`);
-    const d = await r.json();
-    if (d.score) {
-      const el = document.getElementById('detail-score');
-      el.textContent    = `★ ${parseFloat(d.score).toFixed(2)} MAL`;
-      el.style.display  = 'inline';
-      return;
-    }
-    if (d.pending) {
-      setTimeout(async () => {
-        try {
-          const r2 = await fetch(`${API}/score?title=${encodeURIComponent(title)}`);
-          const d2 = await r2.json();
-          if (d2.score) {
-            const el = document.getElementById('detail-score');
-            el.textContent   = `★ ${parseFloat(d2.score).toFixed(2)} MAL`;
-            el.style.display = 'inline';
-          }
-        } catch {}
-      }, 3000);
-    }
+    const r=await fetch(`${API}/score?title=${encodeURIComponent(title)}`), d=await r.json();
+    if (d.score) { const el=document.getElementById('detail-score'); el.textContent=`★ ${parseFloat(d.score).toFixed(2)} MAL`; el.style.display='inline'; return; }
+    if (d.pending) setTimeout(async()=>{ try { const r2=await fetch(`${API}/score?title=${encodeURIComponent(title)}`),d2=await r2.json(); if(d2.score){const el=document.getElementById('detail-score');el.textContent=`★ ${parseFloat(d2.score).toFixed(2)} MAL`;el.style.display='inline';} } catch {} },3000);
   } catch {}
 }
 
 // ── CHAPTERS ──────────────────────────────────────────────────────────────────
 async function loadChapters() {
   if (!currentManga) return;
-  const lang   = document.getElementById('chapter-lang').value;
-  const list   = document.getElementById('chapters-list');
-  const notice = document.getElementById('lang-notice');
-  list.innerHTML    = '<div class="loader">CARREGANDO CAPÍTULOS</div>';
-  notice.style.display = 'none';
+  const lang=document.getElementById('chapter-lang').value;
+  const list=document.getElementById('chapters-list'), notice=document.getElementById('lang-notice');
+  list.innerHTML='<div class="loader">CARREGANDO CAPÍTULOS</div>'; notice.style.display='none';
   try {
-    const slug = currentManga.slug||'';
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 12000);
-    let r = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`, { signal: ctrl.signal });
-    clearTimeout(timer);
-    let data = await r.json();
-    const fallbacks = {'pt-br':['pt','en'],'pt':['pt-br','en'],'en':[]};
-    let usedLang = lang;
+    const slug=currentManga.slug||'';
+    const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),12000);
+    let r=await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`,{signal:ctrl.signal});
+    clearTimeout(timer); let data=await r.json();
+    const fallbacks={'pt-br':['pt','en'],'pt':['pt-br','en'],'en':[]};
+    let usedLang=lang;
     if (!data.chapters||!data.chapters.length) {
-      for (const fl of (fallbacks[lang]||[])) {
-        const ctrl2 = new AbortController();
-        const timer2 = setTimeout(() => ctrl2.abort(), 10000);
-        r    = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${fl}&source=${currentManga.source}&slug=${slug}`, { signal: ctrl2.signal });
-        clearTimeout(timer2);
-        data = await r.json();
+      for (const fl of(fallbacks[lang]||[])) {
+        const ctrl2=new AbortController(); const timer2=setTimeout(()=>ctrl2.abort(),10000);
+        r=await fetch(`${API}/chapters?id=${currentManga.id}&lang=${fl}&source=${currentManga.source}&slug=${slug}`,{signal:ctrl2.signal});
+        clearTimeout(timer2); data=await r.json();
         if (data.chapters&&data.chapters.length) { usedLang=fl; break; }
       }
     }
     if (!data.chapters||!data.chapters.length) {
-      list.innerHTML = '<div class="loader">NENHUM CAPÍTULO DISPONÍVEL</div>';
-      document.getElementById('chapter-count').textContent = '';
-      currentChapterList = [];
-      return;
+      list.innerHTML='<div class="loader">NENHUM CAPÍTULO DISPONÍVEL</div>';
+      document.getElementById('chapter-count').textContent=''; currentChapterList=[]; return;
     }
     if (usedLang!==lang) {
-      const langNames = {'pt-br':'PT-BR','pt':'PT','en':'EN'};
-      notice.textContent   = `// IDIOMA ${langNames[lang]} INDISPONÍVEL — EXIBINDO ${langNames[usedLang]}`;
-      notice.style.display = 'block';
+      const langNames={'pt-br':'PT-BR','pt':'PT','en':'EN'};
+      notice.textContent=`// IDIOMA ${langNames[lang]} INDISPONÍVEL — EXIBINDO ${langNames[usedLang]}`; notice.style.display='block';
     }
-    currentChapterList = data.chapters;
-    const prog = await _getProgresso();
-    const p    = prog[currentManga.id] || { read: {}, last: null };
-    const read = p.read;
-    const last = p.last;
-    const readCount  = data.chapters.filter(c => read[String(c.id)]).length;
-    const totalCount = data.chapters.length;
-    const progressPct = totalCount > 0 ? Math.round((readCount/totalCount)*100) : 0;
-    document.getElementById('chapter-count').textContent = `[${totalCount} CAPÍTULOS]`;
-    const continueBar = document.getElementById('continue-bar');
-    if (last && last.id && read[String(last.id)]) {
-      continueBar.style.display = 'flex';
-      document.getElementById('continue-label').textContent = `▶ CONTINUAR — CAP. ${last.num}`;
-      continueBar.onclick = () => openChapter(last.id, last.num, last.source);
-    } else {
-      continueBar.style.display = 'none';
-    }
-    const progBar  = document.getElementById('read-progress-bar');
-    const progText = document.getElementById('read-progress-text');
-    if (readCount > 0) {
-      progBar.style.display = 'block';
-      progBar.querySelector('.prog-fill').style.width = progressPct + '%';
-      progText.textContent = `${readCount}/${totalCount} LIDOS (${progressPct}%)`;
-    } else {
-      progBar.style.display = 'none';
-    }
-    list.innerHTML = data.chapters.map(c => `
+    currentChapterList=data.chapters;
+    const prog=await _getProgresso(), p=prog[currentManga.id]||{read:{},last:null};
+    const read=p.read, last=p.last;
+    const readCount=data.chapters.filter(c=>read[String(c.id)]).length, totalCount=data.chapters.length;
+    const progressPct=totalCount>0?Math.round((readCount/totalCount)*100):0;
+    document.getElementById('chapter-count').textContent=`[${totalCount} CAPÍTULOS]`;
+    const continueBar=document.getElementById('continue-bar');
+    if (last&&last.id&&read[String(last.id)]) {
+      continueBar.style.display='flex';
+      document.getElementById('continue-label').textContent=`▶ CONTINUAR — CAP. ${last.num}`;
+      continueBar.onclick=()=>openChapter(last.id,last.num,last.source);
+    } else { continueBar.style.display='none'; }
+    const progBar=document.getElementById('read-progress-bar'), progText=document.getElementById('read-progress-text');
+    if (readCount>0) {
+      progBar.style.display='block';
+      progBar.querySelector('.prog-fill').style.width=progressPct+'%';
+      progText.textContent=`${readCount}/${totalCount} (${progressPct}%)`;
+    } else { progBar.style.display='none'; }
+    list.innerHTML=data.chapters.map(c=>`
       <div class="chapter-item ${read[String(c.id)]?'read':''}"
            onclick="openChapter('${c.id}','${c.chapter}','${c.source||currentManga.source}')">
         <span class="chapter-num">CAP ${c.chapter}</span>
         <span class="chapter-title-text">${c.title||''}</span>
         <span class="chapter-lang">${c.lang}</span>
       </div>`).join('');
-  } catch {
-    list.innerHTML = '<div class="loader">ERRO AO CARREGAR</div>';
-  }
+  } catch { list.innerHTML='<div class="loader">ERRO AO CARREGAR</div>'; }
 }
 
 // ── READER ────────────────────────────────────────────────────────────────────
-let currentChapterList = [], currentChapterIndex = -1;
-let lastReaderChapterId = null, lastReaderSource = null;
+let currentChapterList=[], currentChapterIndex=-1, lastReaderChapterId=null, lastReaderSource=null;
 
-async function openChapter(id, num, source) {
-  lastReaderChapterId = id;
-  lastReaderSource    = source || currentManga?.source || 'mangadex';
-  const idx = currentChapterList.findIndex(c=>c.id===id);
-  currentChapterIndex = idx;
+async function openChapter(id,num,source) {
+  lastReaderChapterId=id; lastReaderSource=source||currentManga?.source||'mangadex';
+  const idx=currentChapterList.findIndex(c=>c.id===id); currentChapterIndex=idx;
   updateNavButtons();
-  document.getElementById('reader-title').textContent    = `${currentManga?.title||''} // CAP. ${num}`;
-  document.getElementById('reader-progress').textContent = '';
-  document.getElementById('pages-container').innerHTML   = '<div class="loader" style="color:var(--muted);padding:5rem">CARREGANDO DADOS</div>';
-  document.getElementById('reader-end-nav').style.display = 'none';
+  document.getElementById('reader-title').textContent=`${currentManga?.title||''} // CAP. ${num}`;
+  document.getElementById('reader-progress').textContent='';
+  document.getElementById('pages-container').innerHTML='<div class="loader" style="color:var(--muted);padding:5rem">CARREGANDO</div>';
+  document.getElementById('reader-end-nav').style.display='none';
   showPage('reader');
-  const readerState = { mid: currentManga?.id, cid: id, num, src: lastReaderSource, manga: currentManga };
-  history.replaceState(readerState, '', '#reader');
+  history.replaceState({mid:currentManga?.id,cid:id,num,src:lastReaderSource,manga:currentManga},'','#reader');
   scrollTo(0,0);
-  if (currentManga) {
-    await dbSaveProgresso(currentManga, id, num, source||currentManga.source);
-    dbSaveHistory(currentManga, id, num);
-  }
+  if (currentManga) { await dbSaveProgresso(currentManga,id,num,source||currentManga.source); dbSaveHistory(currentManga,id,num); }
   try {
-    const src = source||currentManga?.source||'mangadex';
-    const r   = await fetch(`${API}/pages?id=${id}&source=${src}`);
-    const data = await r.json();
-    const validPages = (data.pages||[]).filter(url => {
+    const src=source||currentManga?.source||'mangadex';
+    const r=await fetch(`${API}/pages?id=${id}&source=${src}`), data=await r.json();
+    const validPages=(data.pages||[]).filter(url=>{
       if (!url) return false;
       if (url.includes('mangadex.org')&&!url.includes('uploads.mangadex.org')) return false;
       return true;
     });
     if (!validPages.length) {
-      document.getElementById('pages-container').innerHTML = `
-        <div class="loader" style="padding:3rem;text-align:center;max-width:500px;margin:auto">
-          ${src==='mangazord'?'// PÁGINAS INDISPONÍVEIS VIA MANGAZORD — TENTE BUSCAR POR MANGADEX OU COMICK':'// NENHUMA PÁGINA ENCONTRADA'}
-        </div>`;
+      document.getElementById('pages-container').innerHTML=`<div class="loader" style="padding:3rem;text-align:center;max-width:500px;margin:auto">${src==='mangazord'?'// PÁGINAS INDISPONÍVEIS VIA MANGAZORD':'// NENHUMA PÁGINA ENCONTRADA'}</div>`;
       return;
     }
-    document.getElementById('reader-progress').textContent = `[${validPages.length} PAG]`;
-    document.getElementById('pages-container').innerHTML   = validPages.map((url,i) =>
-      `<img class="reader-page-img" data-src="${url}" data-idx="${i}" alt="Página ${i+1}"
-        style="min-height:300px;background:var(--surface2)">`
+    document.getElementById('reader-progress').textContent=`[${validPages.length} PAG]`;
+    document.getElementById('pages-container').innerHTML=validPages.map((url,i)=>
+      `<img class="reader-page-img" data-src="${url}" data-idx="${i}" alt="Página ${i+1}" style="min-height:300px;background:var(--surface2)">`
     ).join('');
-
     function attachRetry(img) {
-      img.addEventListener('error', async function() {
-        const retries = parseInt(img.dataset.retries || '0');
-        if (retries >= 2) { img.style.opacity = '0.12'; return; }
-        img.dataset.retries = retries + 1;
-        img.style.opacity   = '0.3';
+      img.addEventListener('error',async function(){
+        const retries=parseInt(img.dataset.retries||'0');
+        if (retries>=2){img.style.opacity='0.12';return;}
+        img.dataset.retries=retries+1; img.style.opacity='0.3';
         try {
-          const cid = lastReaderChapterId;
-          const src = lastReaderSource || 'mangadex';
+          const cid=lastReaderChapterId,src=lastReaderSource||'mangadex';
           if (!cid) return;
-          const r2   = await fetch(`${API}/pages?id=${cid}&source=${src}`);
-          const data2 = await r2.json();
-          const idx2  = parseInt(img.dataset.idx || '0');
-          const newUrl = (data2.pages || [])[idx2];
-          if (newUrl && newUrl !== img.src) { img.src = newUrl; img.style.opacity = '1'; }
-        } catch { img.style.opacity = '0.5'; }
+          const r2=await fetch(`${API}/pages?id=${cid}&source=${src}`),data2=await r2.json();
+          const idx2=parseInt(img.dataset.idx||'0'),newUrl=(data2.pages||[])[idx2];
+          if (newUrl&&newUrl!==img.src){img.src=newUrl;img.style.opacity='1';}
+        } catch{img.style.opacity='0.5';}
       });
     }
-
-    const imgs     = document.querySelectorAll('#pages-container img[data-src]');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          attachRetry(img);
-          img.src = img.dataset.src;
-          img.removeAttribute('data-src');
-          observer.unobserve(img);
+    const imgs=document.querySelectorAll('#pages-container img[data-src]');
+    const observer=new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if (entry.isIntersecting){
+          const img=entry.target; attachRetry(img); img.src=img.dataset.src; img.removeAttribute('data-src'); observer.unobserve(img);
         }
       });
-    }, {rootMargin:'500px'});
-    imgs.forEach(img => observer.observe(img));
-
-    const endNav = document.getElementById('reader-end-nav');
-    endNav.style.display = 'flex';
-    document.getElementById('end-btn-next').disabled = currentChapterIndex >= currentChapterList.length-1;
-    document.getElementById('end-btn-prev').disabled = currentChapterIndex <= 0;
-  } catch {
-    document.getElementById('pages-container').innerHTML = '<div class="loader" style="color:var(--muted)">ERRO AO CARREGAR</div>';
-  }
+    },{rootMargin:'500px'});
+    imgs.forEach(img=>observer.observe(img));
+    const endNav=document.getElementById('reader-end-nav'); endNav.style.display='flex';
+    document.getElementById('end-btn-next').disabled=currentChapterIndex>=currentChapterList.length-1;
+    document.getElementById('end-btn-prev').disabled=currentChapterIndex<=0;
+  } catch { document.getElementById('pages-container').innerHTML='<div class="loader" style="color:var(--muted)">ERRO AO CARREGAR</div>'; }
 }
 
 function updateNavButtons() {
-  const btnPrev = document.getElementById('btn-prev');
-  const btnNext = document.getElementById('btn-next');
-  const endNext = document.getElementById('end-btn-next');
-  const endPrev = document.getElementById('end-btn-prev');
-  if (btnPrev) btnPrev.disabled = currentChapterIndex<=0;
-  if (btnNext) btnNext.disabled = currentChapterIndex<0||currentChapterIndex>=currentChapterList.length-1;
-  if (endNext) endNext.disabled = currentChapterIndex>=currentChapterList.length-1;
-  if (endPrev) endPrev.disabled = currentChapterIndex<=0;
+  const btnPrev=document.getElementById('btn-prev'),btnNext=document.getElementById('btn-next');
+  const endNext=document.getElementById('end-btn-next'),endPrev=document.getElementById('end-btn-prev');
+  if(btnPrev)btnPrev.disabled=currentChapterIndex<=0;
+  if(btnNext)btnNext.disabled=currentChapterIndex<0||currentChapterIndex>=currentChapterList.length-1;
+  if(endNext)endNext.disabled=currentChapterIndex>=currentChapterList.length-1;
+  if(endPrev)endPrev.disabled=currentChapterIndex<=0;
 }
-
-function navChapter(dir) {
-  const newIdx = currentChapterIndex+dir;
-  if (newIdx<0||newIdx>=currentChapterList.length) return;
-  const c = currentChapterList[newIdx];
-  openChapter(c.id, c.chapter, c.source||currentManga?.source);
-}
-
-function goBackToDetail() { showPage('detail'); }
+function navChapter(dir){const newIdx=currentChapterIndex+dir;if(newIdx<0||newIdx>=currentChapterList.length)return;const c=currentChapterList[newIdx];openChapter(c.id,c.chapter,c.source||currentManga?.source);}
+function goBackToDetail(){showPage('detail');}
 
 // ── FAVORITES ─────────────────────────────────────────────────────────────────
-let _favsCache = null;
-
-async function _getFavs() {
-  if (_favsCache === null) _favsCache = await dbLoadFavorites();
-  return _favsCache;
-}
-
-async function toggleFav() {
-  if (!currentManga) return;
-  if (!isLoggedIn()) { openAuthModal('login'); return; }
-  const favs  = await _getFavs();
-  const isFav = favs.some(f=>f.manga_id===currentManga.id);
-  if (isFav) {
-    await dbRemoveFav(currentManga.id);
-    _favsCache = favs.filter(f=>f.manga_id!==currentManga.id);
-  } else {
-    await dbSaveFav(currentManga);
-    _favsCache = null;
-  }
+let _favsCache=null;
+async function _getFavs(){if(_favsCache===null)_favsCache=await dbLoadFavorites();return _favsCache;}
+async function toggleFav(){
+  if(!currentManga)return;
+  if(!isLoggedIn()){openAuthModal('login');return;}
+  const favs=await _getFavs(),isFav=favs.some(f=>f.manga_id===currentManga.id);
+  if(isFav){await dbRemoveFav(currentManga.id);_favsCache=favs.filter(f=>f.manga_id!==currentManga.id);}
+  else{await dbSaveFav(currentManga);_favsCache=null;}
   updateFavBtn();
 }
-
-async function updateFavBtn() {
-  const btn   = document.getElementById('fav-btn');
-  const favs  = await _getFavs();
-  const isFav = currentManga&&favs.some(f=>f.manga_id===currentManga.id);
-  btn.textContent = isFav ? '★ FAVORITADO' : '♡ FAVORITAR';
-  btn.classList.toggle('saved', !!isFav);
+async function updateFavBtn(){
+  const btn=document.getElementById('fav-btn'),favs=await _getFavs();
+  const isFav=currentManga&&favs.some(f=>f.manga_id===currentManga.id);
+  btn.textContent=isFav?'★ FAVORITADO':'♡ FAVORITAR'; btn.classList.toggle('saved',!!isFav);
 }
-
-async function renderFavorites() {
-  _favsCache = null;
-  const grid = document.getElementById('favorites-grid');
-  grid.innerHTML = '<div class="loader">CARREGANDO</div>';
-  if (!isLoggedIn()) {
-    grid.innerHTML = '<div class="empty-msg"><span>LOGIN</span>Faça login para ver seus favoritos.</div>';
-    return;
-  }
-  const dbFavs = await _getFavs();
-  if (!dbFavs.length) { grid.innerHTML = '<div class="empty-msg"><span>VAZIO</span>Nenhum favorito salvo.</div>'; return; }
-  const items = dbFavs.map(f=>{
-    const d = f.manga_data||{};
-    return {id:f.manga_id||d.id||'',title:f.manga_title||d.title||'Sem título',
-      cover:f.manga_cover||d.cover||'',source:f.manga_source||d.source||'mangadex',
-      status:d.status||'',tags:d.tags||[],score:d.score||null,slug:d.slug||'',tipo:d.tipo||''};
-  });
-  renderGrid(items, 'favorites-grid');
+async function renderFavorites(){
+  _favsCache=null; const grid=document.getElementById('favorites-grid');
+  grid.innerHTML='<div class="loader">CARREGANDO</div>';
+  if(!isLoggedIn()){grid.innerHTML='<div class="empty-msg"><span>LOGIN</span>Faça login para ver seus favoritos.</div>';return;}
+  const dbFavs=await _getFavs();
+  if(!dbFavs.length){grid.innerHTML='<div class="empty-msg"><span>VAZIO</span>Nenhum favorito salvo.</div>';return;}
+  const items=dbFavs.map(f=>{const d=f.manga_data||{};return{id:f.manga_id||d.id||'',title:f.manga_title||d.title||'Sem título',cover:f.manga_cover||d.cover||'',source:f.manga_source||d.source||'mangadex',status:d.status||'',tags:d.tags||[],score:d.score||null,slug:d.slug||'',tipo:d.tipo||''};});
+  renderGrid(items,'favorites-grid');
 }
-
-async function renderHistory() {
-  const list = document.getElementById('history-list');
-  list.innerHTML = '<div class="loader">CARREGANDO</div>';
-  if (!isLoggedIn()) {
-    list.innerHTML = '<div class="empty-msg"><span>LOGIN</span>Faça login para ver seu histórico.</div>';
-    return;
-  }
-  const dbHist = await dbLoadHistory();
-  if (!dbHist.length) { list.innerHTML = '<div class="empty-msg"><span>VAZIO</span>Nenhum histórico ainda.</div>'; return; }
-  list.innerHTML = dbHist.map(h => {
-    const manga  = h.manga_data||{id:h.manga_id,title:h.manga_title,cover:h.manga_cover,source:h.manga_source};
-    const safeM  = JSON.stringify(manga).replace(/"/g,'&quot;');
-    const date   = new Date(h.lido_em).toLocaleDateString('pt-BR');
-    const srcColor = h.manga_source==='comick'?'#80b3ff':h.manga_source==='mangazord'?'#00ff9d':'var(--cyan)';
+async function renderHistory(){
+  const list=document.getElementById('history-list');
+  list.innerHTML='<div class="loader">CARREGANDO</div>';
+  if(!isLoggedIn()){list.innerHTML='<div class="empty-msg"><span>LOGIN</span>Faça login para ver seu histórico.</div>';return;}
+  const dbHist=await dbLoadHistory();
+  if(!dbHist.length){list.innerHTML='<div class="empty-msg"><span>VAZIO</span>Nenhum histórico ainda.</div>';return;}
+  list.innerHTML=dbHist.map(h=>{
+    const manga=h.manga_data||{id:h.manga_id,title:h.manga_title,cover:h.manga_cover,source:h.manga_source};
+    const safeM=JSON.stringify(manga).replace(/"/g,'&quot;');
+    const date=new Date(h.lido_em).toLocaleDateString('pt-BR');
+    const srcColor=h.manga_source==='comick'?'#80b3ff':h.manga_source==='mangazord'?'#00ff9d':'var(--cyan)';
     return `<div class="chapter-item" onclick='openManga(${safeM})'>
       <img src="${proxyImg(h.manga_cover)}" style="width:36px;height:50px;object-fit:cover;border-radius:2px;margin-right:1rem;border:1px solid var(--border)" onerror="this.style.display='none'">
-      <div style="flex:1">
-        <div style="font-weight:700;font-size:0.85rem">${h.manga_title}</div>
-        <div style="font-family:'Share Tech Mono',monospace;color:var(--muted);font-size:0.62rem;margin-top:0.2rem;letter-spacing:1px">CAP. ${h.chapter_num} // ${date}</div>
-      </div>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:${srcColor};border:1px solid currentColor;padding:0.15rem 0.45rem;border-radius:2px;letter-spacing:1px">${h.manga_source?.toUpperCase()}</span>
+      <div style="flex:1"><div style="font-weight:700;font-size:0.85rem">${h.manga_title}</div>
+      <div style="font-family:'Share Tech Mono',monospace;color:var(--muted);font-size:0.62rem;margin-top:0.2rem">CAP. ${h.chapter_num} // ${date}</div></div>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:${srcColor};border:1px solid currentColor;padding:0.15rem 0.45rem;border-radius:2px">${h.manga_source?.toUpperCase()}</span>
     </div>`;
   }).join('');
 }
 
 // ── NOTIFICAÇÕES ──────────────────────────────────────────────────────────────
-async function checkNewChapters() {
-  if (!isLoggedIn()) return;
-  const favs = await _getFavs();
-  if (!favs.length) return;
-  const seen = await _getNotifSeen();
-  const news = [];
-  await Promise.allSettled(favs.map(async fav => {
+async function checkNewChapters(){
+  if(!isLoggedIn())return;
+  const favs=await _getFavs(); if(!favs.length)return;
+  const seen=await _getNotifSeen(), news=[];
+  await Promise.allSettled(favs.map(async fav=>{
     try {
-      const mid  = fav.manga_id;
-      const src  = fav.manga_source||'mangadex';
-      const slug = fav.manga_data?.slug||'';
-      const ctrl = new AbortController();
-      setTimeout(() => ctrl.abort(), 8000);
-      const r = await fetch(`${API}/chapters?id=${mid}&lang=pt-br&source=${src}&slug=${slug}`,{signal:ctrl.signal});
-      const d = await r.json();
-      const chapters   = d.chapters||[];
-      if (!chapters.length) return;
-      const latest     = chapters[chapters.length-1];
-      const latestNum  = latest.chapter;
-      const prevNum    = seen[mid];
-      if (prevNum !== undefined && latestNum !== prevNum) {
-        news.push({ title: fav.manga_title, chapter: latestNum,
-          manga: fav.manga_data||{id:mid,title:fav.manga_title,cover:fav.manga_cover,source:src} });
-      }
-      seen[mid] = latestNum;
-    } catch {}
+      const mid=fav.manga_id,src=fav.manga_source||'mangadex',slug=fav.manga_data?.slug||'';
+      const ctrl=new AbortController(); setTimeout(()=>ctrl.abort(),8000);
+      const r=await fetch(`${API}/chapters?id=${mid}&lang=pt-br&source=${src}&slug=${slug}`,{signal:ctrl.signal});
+      const d=await r.json(); const chapters=d.chapters||[]; if(!chapters.length)return;
+      const latest=chapters[chapters.length-1],latestNum=latest.chapter,prevNum=seen[mid];
+      if(prevNum!==undefined&&latestNum!==prevNum) news.push({title:fav.manga_title,chapter:latestNum,manga:fav.manga_data||{id:mid,title:fav.manga_title,cover:fav.manga_cover,source:src}});
+      seen[mid]=latestNum;
+    } catch{}
   }));
-  if (isLoggedIn()) {
-    authFetch(`${API}/notif/salvar`, {
-      method: 'POST',
-      body: JSON.stringify({ seen })
-    }).catch(() => {});
-  }
-  if (news.length) showNotifToast(news);
+  if(isLoggedIn()) authFetch(`${API}/notif/salvar`,{method:'POST',body:JSON.stringify({seen})}).catch(()=>{});
+  if(news.length) showNotifToast(news);
 }
 
-function showNotifToast(items) {
-  let toast = document.getElementById('notif-toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'notif-toast';
-    toast.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:320px';
-    document.body.appendChild(toast);
-  }
-  items.forEach(item => {
-    const el = document.createElement('div');
-    el.style.cssText = 'background:var(--surface2);border:1px solid var(--cyan);border-radius:6px;padding:0.8rem 1rem;font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;cursor:pointer;box-shadow:0 0 20px rgba(0,245,255,0.15);animation:slideIn 0.3s ease;display:flex;flex-direction:column;gap:0.3rem';
-    if (item.isSys) {
-      el.innerHTML = `<span style="color:var(--cyan);letter-spacing:1px">✓ ${item.title}</span>`;
-    } else {
-      el.innerHTML = `
-        <span style="color:var(--cyan);letter-spacing:1px">🔔 NOVO CAPÍTULO</span>
-        <span style="color:var(--text);font-size:0.75rem;font-family:'Rajdhani',sans-serif;font-weight:600">${item.title}</span>
-        <span style="color:var(--muted)">CAP. ${item.chapter} disponível</span>`;
-      el.onclick = () => { openManga(item.manga); el.remove(); };
-    }
-    toast.appendChild(el);
-    setTimeout(() => el.remove(), 5000);
+function showNotifToast(items){
+  let toast=document.getElementById('notif-toast');
+  if(!toast){toast=document.createElement('div');toast.id='notif-toast';toast.style.cssText='position:fixed;bottom:5rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:300px';document.body.appendChild(toast);}
+  items.forEach(item=>{
+    const el=document.createElement('div');
+    el.style.cssText='background:var(--surface2);border:1px solid var(--cyan);border-radius:6px;padding:0.8rem 1rem;font-family:\'Share Tech Mono\',monospace;font-size:0.7rem;cursor:pointer;box-shadow:0 0 20px rgba(0,245,255,0.15);animation:slideUp 0.3s ease;display:flex;flex-direction:column;gap:0.3rem';
+    if(item.isSys){el.innerHTML=`<span style="color:var(--cyan)">✓ ${item.title}</span>`;}
+    else{el.innerHTML=`<span style="color:var(--cyan)">🔔 NOVO CAPÍTULO</span><span style="color:var(--text);font-size:0.75rem;font-family:'Rajdhani',sans-serif;font-weight:600">${item.title}</span><span style="color:var(--muted)">CAP. ${item.chapter}</span>`;el.onclick=()=>{openManga(item.manga);el.remove();};}
+    toast.appendChild(el); setTimeout(()=>el.remove(),5000);
   });
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-(async function restorePageFromHash() {
-  const hash  = location.hash.replace('#','');
-  const valid = ['home','explore','favorites','history','results'];
-
-  if (hash === 'reader') {
-    const st = history.state;
-    if (st && st.cid && st.manga) {
-      currentManga = st.manga;
-      try {
-        const slug = currentManga.slug||'';
-        const lang = document.getElementById('chapter-lang')?.value||'pt-br';
-        const r    = await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`);
-        const d    = await r.json();
-        currentChapterList = d.chapters||[];
-      } catch { currentChapterList = []; }
-      openChapter(st.cid, st.num, st.src);
-      loadHomeData();
-      setTimeout(checkNewChapters, 5000);
-      return;
+(async function(){
+  const hash=location.hash.replace('#','');
+  const valid=['home','explore','favorites','history','results'];
+  if (hash==='reader'){
+    const st=history.state;
+    if(st&&st.cid&&st.manga){
+      currentManga=st.manga;
+      try{const slug=currentManga.slug||'',lang=document.getElementById('chapter-lang')?.value||'pt-br';const r=await fetch(`${API}/chapters?id=${currentManga.id}&lang=${lang}&source=${currentManga.source}&slug=${slug}`);const d=await r.json();currentChapterList=d.chapters||[];}catch{currentChapterList=[];}
+      openChapter(st.cid,st.num,st.src); loadHomeData(); setTimeout(checkNewChapters,5000); return;
     }
   }
-
-  if (hash && valid.includes(hash)) showPage(hash);
-  else showPage('home');
-  loadHomeData();
-  setTimeout(checkNewChapters, 5000);
+  if(hash&&valid.includes(hash))showPage(hash); else showPage('home');
+  loadHomeData(); setTimeout(checkNewChapters,5000);
 })();
 </script>
 </body>
