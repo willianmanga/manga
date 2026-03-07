@@ -849,7 +849,16 @@ function isAdmin()    { return _session?.role === 'admin'; }
 
 function setSession(data) {
   _session = data ? { token: data.token, username: data.username, role: data.role, user_id: data.user_id } : null;
+  if (_session) localStorage.setItem('mn_session', JSON.stringify(_session));
+  else localStorage.removeItem('mn_session');
   updateAuthUI();
+}
+
+function restoreSession() {
+  try {
+    const saved = localStorage.getItem('mn_session');
+    if (saved) { _session = JSON.parse(saved); updateAuthUI(); }
+  } catch { localStorage.removeItem('mn_session'); }
 }
 
 function updateAuthUI() {
@@ -1397,6 +1406,7 @@ function showNotifToast(items){
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 (async function(){
+  restoreSession();
   const hash=location.hash.replace('#','');
   const valid=['home','explore','favorites','history','results'];
   if (hash==='reader'){
