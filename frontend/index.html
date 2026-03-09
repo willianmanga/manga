@@ -1006,6 +1006,7 @@ async function dbSaveProgresso(manga,chapterId,chapterNum,source) {
   if (!prog[manga.id]) prog[manga.id]={last:{},read:{}};
   prog[manga.id].last={id:chapterId,num:chapterNum,source};
   prog[manga.id].read[String(chapterId)]=true;
+  _progressoCache=prog; // atualiza cache local imediatamente
   if (!isLoggedIn()) return;
   authFetch(`${API}/progresso/salvar`,{method:'POST',body:JSON.stringify({
     manga_id:manga.id,manga_title:manga.title,manga_cover:manga.cover||'',
@@ -1240,7 +1241,7 @@ async function loadChapters() {
     const progressPct=totalCount>0?Math.round((readCount/totalCount)*100):0;
     document.getElementById('chapter-count').textContent=`[${totalCount} CAPÍTULOS]`;
     const continueBar=document.getElementById('continue-bar');
-    if (last&&last.id&&read[String(last.id)]) {
+    if (last&&last.id) {
       continueBar.style.display='flex';
       document.getElementById('continue-label').textContent=`▶ CONTINUAR — CAP. ${last.num}`;
       continueBar.onclick=()=>openChapter(last.id,last.num,last.source);
